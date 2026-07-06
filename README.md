@@ -10,7 +10,7 @@
 
 ## Что это
 
-**Windrose PSR** — это репозиторий с автономными HTML-инструментами для полевой и штабной работы в поисково-спасательных работах.
+**PSR** — это репозиторий с автономными HTML-инструментами для полевой и штабной работы в поисково-спасательных работах.
 
 Инструменты помогают:
 
@@ -32,9 +32,9 @@
 
 Если в репозитории включён GitHub Pages, инструменты можно открывать как обычные веб-страницы:
 
-- **Главная страница:** `https://podkit.github.io/windrose-psr/`
-- **Роза ветров:** `https://podkit.github.io/windrose-psr/Roza_vetrov_v1.html`
-- **Генератор сетки:** `https://podkit.github.io/windrose-psr/generator_setki_v1.html`
+- **Главная страница:** `https://podkit.github.io/psr/`
+- **Роза ветров:** `https://podkit.github.io/psr/Roza_vetrov_v1.html`
+- **Генератор сетки:** `https://podkit.github.io/psr/generator_setki_v1.html`
 
 ## Быстрый старт
 
@@ -170,7 +170,7 @@ MBTiles — формат офлайн-карт.
 ## Структура репозитория
 
 ```text
-windrose-psr/
+psr/
 ├── index.html                # стартовая страница проекта
 ├── Roza_vetrov_v1.html       # инструмент «Роза ветров»
 ├── generator_setki_v1.html   # инструмент «Генератор сетки»

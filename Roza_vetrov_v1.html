@@ -1312,6 +1312,379 @@
       .timeDial:not(.hidden) .timeDialKnob{animation:none!important}
     }
 
+
+    /* v1.6: компактные статусы, координаты в одну строку, настройки источников и прогресс загрузки */
+    .compactStatus{padding:8px 9px!important;white-space:normal!important}
+    .compactStatusBtn{width:auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:7px 12px!important;border-radius:999px!important;font-size:13px!important;line-height:1.15!important;font-weight:850!important;background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important}
+    .compactStatus.good .compactStatusBtn,.status.good .compactStatusBtn{background:#d9f4e8!important;border-color:#9ed8bf!important;color:#063d29!important}
+    .compactStatus.warn .compactStatusBtn,.status.warn .compactStatusBtn{background:#fff9ec!important;border-color:rgba(154,91,0,.35)!important;color:#674000!important}
+    .compactStatus.bad .compactStatusBtn,.status.bad .compactStatusBtn{background:#fff2f0!important;border-color:rgba(180,35,24,.36)!important;color:#842029!important}
+    .compactStatusDetail{margin-top:8px;padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:#fafdff;color:var(--muted);font-size:12px;line-height:1.35;white-space:pre-line}
+    body.original-theme .compactStatusBtn{background:#22304d!important;color:#dce6ff!important;border-color:#2d3a59!important}
+    body.original-theme .compactStatus.good .compactStatusBtn,body.original-theme .status.good .compactStatusBtn{background:#102019!important;border-color:rgba(141,223,154,.48)!important;color:#dfffe4!important}
+    body.original-theme .compactStatus.warn .compactStatusBtn,body.original-theme .status.warn .compactStatusBtn{background:#241c10!important;border-color:rgba(255,209,102,.48)!important;color:#ffe19a!important}
+    body.original-theme .compactStatus.bad .compactStatusBtn,body.original-theme .status.bad .compactStatusBtn{background:#24131a!important;border-color:rgba(255,138,138,.48)!important;color:#ffb4b4!important}
+    body.original-theme .compactStatusDetail{background:#0d1528;border-color:#2d3a59;color:#a9b6d3}
+    .coordSearchRow{display:grid;grid-template-columns:minmax(0,1fr) 44px 92px;gap:8px;align-items:center}
+    .coordSearchRow .iconBtn{width:44px!important;min-width:44px!important;max-width:44px!important;height:42px!important}
+    .coordSearchRow button:not(.iconBtn){height:42px!important;padding:8px 12px!important}
+    .sourceLine{grid-template-columns:minmax(0,1fr) 150px!important}
+    .settingsWideBtn{width:100%!important;min-width:142px!important;height:43px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:0 13px!important;border-radius:12px!important;background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;font-size:14px!important;font-weight:850!important;white-space:nowrap!important}
+    .settingsWideBtn:hover{border-color:var(--accent)!important;background:#eef8ff!important}
+    body.original-theme .settingsWideBtn{background:#22304d!important;color:#dce6ff!important;border-color:#2d3a59!important}
+    body.original-theme .settingsWideBtn:hover{border-color:#7dd3fc!important;background:#22304d!important}
+    .sourceControlSettings{margin:10px 0 12px}
+    .sourceProgress{position:relative;height:7px;margin-top:8px;border-radius:999px;overflow:hidden;background:#d8edf8;border:1px solid var(--line)}
+    .sourceProgress::before{content:"";position:absolute;inset:0 auto 0 -38%;width:38%;border-radius:999px;background:linear-gradient(90deg, transparent, var(--accent), transparent);animation:sourceProgressMove 1.05s linear infinite}
+    @keyframes sourceProgressMove{from{left:-38%}to{left:100%}}
+    body.original-theme .sourceProgress{background:#0d1528;border-color:#2d3a59}
+    body.original-theme .sourceProgress::before{background:linear-gradient(90deg, transparent, #7dd3fc, transparent)}
+    @media (prefers-reduced-motion: reduce){.sourceProgress::before{animation:none;left:0;width:100%;opacity:.55}}
+    @media(max-width:720px){.coordSearchRow{grid-template-columns:minmax(0,1fr) 42px 82px}.sourceLine{grid-template-columns:1fr!important}.settingsWideBtn{min-width:0!important}}
+    #metrics .metric.directionMetric{overflow:hidden!important}
+    #metrics .metric.directionMetric .metricLabel{font-size:12.2px!important;line-height:1.08!important;white-space:normal!important;overflow:visible!important}
+    #metrics .metric.directionMetric b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;max-width:100%!important;max-height:48px!important;display:flex!important;align-items:center!important}
+    #metrics .metric.directionMetric b.longDir{font-size:23px!important;line-height:1.02!important}
+    #metrics .metric.directionMetric b.wideDir{font-size:18px!important;line-height:1.02!important;letter-spacing:-.04em!important}
+    #metrics .metric.directionMetric b.ultraDir{font-size:15px!important;line-height:1.02!important;letter-spacing:-.045em!important}
+    @media(max-width:920px){#metrics .metric.directionMetric b.longDir{font-size:21px!important}#metrics .metric.directionMetric b.wideDir{font-size:17px!important}#metrics .metric.directionMetric b.ultraDir{font-size:14px!important}}
+    @media(max-width:720px){#metrics .metric.directionMetric .metricLabel{font-size:11.8px!important}#metrics .metric.directionMetric b.longDir{font-size:19px!important}#metrics .metric.directionMetric b.wideDir{font-size:16px!important}#metrics .metric.directionMetric b.ultraDir{font-size:13px!important}}
+
+  
+
+    /* v1.7: статус-кнопки без лишних цветных обёрток, мобильная компоновка */
+    .placeSearchRow{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 92px auto;
+      gap:8px;
+      align-items:center;
+    }
+    .placeSearchRow #searchPlaceBtn{height:42px!important;padding:8px 12px!important}
+    .buildActionRow{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:8px;
+      align-items:center;
+      margin-top:14px;
+    }
+    .buildActionRow .actionBtn{margin-top:0!important;height:43px!important}
+    .status.compactStatus,
+    .status.compactStatus.good,
+    .status.compactStatus.warn,
+    .status.compactStatus.bad,
+    body.original-theme .status.compactStatus,
+    body.original-theme .status.compactStatus.good,
+    body.original-theme .status.compactStatus.warn,
+    body.original-theme .status.compactStatus.bad{
+      display:inline-flex!important;
+      position:relative!important;
+      width:auto!important;
+      min-width:0!important;
+      max-width:none!important;
+      margin:0!important;
+      padding:0!important;
+      background:transparent!important;
+      border:0!important;
+      box-shadow:none!important;
+      color:inherit!important;
+      overflow:visible!important;
+      white-space:normal!important;
+      justify-content:flex-start!important;
+      align-items:center!important;
+    }
+    .compactStatusBtn{min-height:36px!important;white-space:nowrap!important}
+    .compactStatusDetail{
+      position:absolute!important;
+      top:calc(100% + 7px)!important;
+      right:0!important;
+      z-index:70!important;
+      width:min(360px, calc(100vw - 24px))!important;
+      max-height:min(260px, 55vh)!important;
+      overflow:auto!important;
+      box-shadow:0 10px 28px rgba(7,25,35,.18)!important;
+    }
+    body.original-theme .compactStatusDetail{box-shadow:0 14px 36px rgba(0,0,0,.34)!important}
+    .periodTimeRow{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;align-items:end!important}
+    .sourceLine{grid-template-columns:minmax(0,1fr) auto!important;align-items:end!important}
+    .sourceControlSettings{
+      grid-template-columns:repeat(3,minmax(0,1fr))!important;
+      gap:8px!important;
+      margin:8px 0 10px!important;
+    }
+    .sourceControlSettings .settingsItem{
+      padding:8px 9px!important;
+      border-radius:11px!important;
+      min-height:0!important;
+    }
+    .sourceControlSettings .settingsItem label{margin:0 0 4px!important;font-size:12px!important;line-height:1.12!important}
+    .sourceControlSettings .settingsItem select{height:36px!important;padding:6px 8px!important;font-size:13px!important}
+    .technicalTagsBtn{display:none!important;margin:8px 0 0!important;width:auto!important}
+
+    #placeCard,#periodCard{overflow:visible!important}
+
+    @media(max-width:720px){
+      body:not(.simple-mode) .wrap.grid.main{
+        display:flex!important;
+        flex-direction:column!important;
+        gap:8px!important;
+        padding:6px 7px 14px!important;
+      }
+      body:not(.simple-mode) .wrap.grid.main > section.grid{gap:8px!important}
+      body:not(.simple-mode) .card{padding:9px!important;border-radius:12px!important}
+      body:not(.simple-mode) h2{font-size:15px!important;margin-bottom:6px!important;line-height:1.15!important}
+      body:not(.simple-mode) label{font-size:11.5px!important;margin:5px 0 3px!important;line-height:1.15!important}
+      body:not(.simple-mode) input,
+      body:not(.simple-mode) select,
+      body:not(.simple-mode) button,
+      body:not(.simple-mode) textarea{font-size:13px!important;padding:7px 8px!important;border-radius:9px!important}
+      .placeSearchRow{grid-template-columns:minmax(0,1fr) 70px auto!important;gap:5px!important}
+      .placeSearchRow #searchPlaceBtn{height:36px!important;padding:6px 8px!important}
+      .coordSearchRow{grid-template-columns:minmax(0,1fr) 36px 66px!important;gap:5px!important}
+      .coordSearchRow .iconBtn{width:36px!important;min-width:36px!important;max-width:36px!important;height:36px!important;font-size:16px!important;padding:0!important}
+      .coordSearchRow button:not(.iconBtn){height:36px!important;padding:6px 8px!important}
+      .compactStatusBtn{min-height:34px!important;padding:6px 9px!important;font-size:12px!important;max-width:128px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+      .compactStatusDetail{right:0!important;width:min(330px, calc(100vw - 18px))!important;font-size:11.5px!important;padding:8px 9px!important}
+      .periodTimeRow{grid-template-columns:1fr 1fr!important;gap:6px!important}
+      .sourceLine{grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important}
+      .settingsWideBtn{width:auto!important;min-width:96px!important;height:36px!important;padding:0 9px!important;font-size:12.5px!important}
+      .sourceLine select{height:36px!important}
+      .buildActionRow{grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important;margin-top:10px!important}
+      .buildActionRow .actionBtn{height:38px!important;padding:6px 8px!important}
+      .sourceProgress{height:6px!important;margin-top:6px!important}
+      #metrics.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+      #metrics .metric{min-height:76px!important;height:auto!important;padding:8px 9px!important;gap:4px!important}
+      #metrics .metric .metricLabel{font-size:11.2px!important;line-height:1.08!important}
+      #metrics .metric b{font-size:18px!important;line-height:1.02!important}
+      #metrics .metric b + span{font-size:10.8px!important;line-height:1.08!important}
+      #analysisText{font-size:12px!important;padding:8px 9px!important;margin-top:7px!important}
+      .summaryTaskMode{padding:6px 7px!important;margin:-2px 0 8px!important;border-radius:11px!important;gap:6px!important}
+      .summaryTaskMode label{font-size:12px!important}
+      .summaryTaskMode .segmented button{padding:6px 8px!important;font-size:12px!important}
+      .technicalTagsBtn{display:inline-flex!important;margin-top:7px!important;padding:6px 9px!important;font-size:12px!important;border-radius:999px!important}
+      #flags.mobileTagsHidden:not(.show){display:none!important}
+      #flags{gap:5px!important;margin-top:6px!important}
+      #flags .pill{font-size:10.5px!important;padding:4px 7px!important}
+      .summaryHelpRow{grid-template-columns:1fr!important;gap:7px!important;margin-top:7px!important}
+      details{padding:8px 9px!important;border-radius:11px!important;margin-top:7px!important}
+      .noteBox{font-size:12px!important;padding:8px 9px!important;border-radius:11px!important}
+      .segmented{gap:5px!important;margin:4px 0 7px!important}
+      .segmented button{padding:6px 7px!important;font-size:11.8px!important}
+      .canvasBox{min-height:230px!important;padding:4px!important;border-radius:11px!important}
+      .legend{gap:5px!important;margin-top:6px!important}
+      .legend span{font-size:10.5px!important;padding:4px 6px!important}
+      .simpleExportRow{margin-top:6px!important}
+      .simpleExportRow button{padding:6px 10px!important;font-size:12px!important}
+      .mapBox{height:198px!important;min-height:180px!important;margin-top:8px!important}
+      .mapHint{font-size:11px!important;margin-top:4px!important}
+      .settingsGrid{gap:8px!important}
+      .sourceControlSettings{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+      .sourceControlSettings .settingsItem{padding:6px!important;border-radius:9px!important}
+      .sourceControlSettings .settingsItem label{font-size:10.5px!important;min-height:24px!important}
+      .sourceControlSettings .settingsItem select{height:32px!important;font-size:11.5px!important;padding:4px 5px!important}
+      #exportCard{order:999!important}
+    }
+
+  
+
+    /* v1.8: правки простого десктопа и мобильного ввода координат */
+    .placeSearchRow{
+      grid-template-columns:minmax(0,1fr) 92px!important;
+      align-items:center!important;
+    }
+    .placeSearchRow #placeStatus{
+      grid-column:1 / -1!important;
+      justify-self:start!important;
+      margin-top:2px!important;
+    }
+    .buildActionRow .actionBtn{
+      min-height:50px!important;
+      height:auto!important;
+      white-space:normal!important;
+      line-height:1.15!important;
+      padding:10px 12px!important;
+    }
+    body.simple-mode .buildActionRow .actionBtn{
+      min-height:58px!important;
+      padding:12px 14px!important;
+      font-size:15px!important;
+    }
+    .coordSearchRow{
+      grid-template-columns:minmax(0,1fr) 92px!important;
+    }
+    .coordSearchRow button{
+      min-height:42px!important;
+      height:42px!important;
+      padding:8px 12px!important;
+    }
+    body.simple-mode .coordFieldTitle,
+    body.simple-mode .coordSearchRow{
+      display:none!important;
+    }
+    .mobileRoseLabel{display:none!important}
+    .desktopRoseLabel{display:inline!important}
+
+    @media(max-width:720px){
+      body.simple-mode .coordFieldTitle{
+        display:flex!important;
+      }
+      body.simple-mode .coordSearchRow{
+        display:grid!important;
+      }
+      .coordFieldTitle{
+        margin-top:7px!important;
+      }
+      .coordSearchRow{
+        grid-template-columns:minmax(0,1fr) 66px!important;
+        gap:5px!important;
+      }
+      .coordSearchRow button{
+        height:36px!important;
+        min-height:36px!important;
+        padding:6px 8px!important;
+      }
+      .placeSearchRow{
+        grid-template-columns:minmax(0,1fr) 70px!important;
+        gap:5px!important;
+      }
+      .placeSearchRow #placeStatus{
+        margin-top:3px!important;
+      }
+      .buildActionRow .actionBtn,
+      body.simple-mode .buildActionRow .actionBtn{
+        min-height:44px!important;
+        height:auto!important;
+        padding:8px 9px!important;
+        font-size:13px!important;
+        line-height:1.12!important;
+      }
+      body.simple-mode #roseModeSwitch{
+        display:flex!important;
+      }
+      #roseModeSwitch{
+        display:flex!important;
+        flex-wrap:nowrap!important;
+        gap:4px!important;
+        align-items:stretch!important;
+      }
+      #roseModeSwitch button{
+        flex:1 1 0!important;
+        width:auto!important;
+        min-width:0!important;
+        padding:6px 4px!important;
+        font-size:11px!important;
+        line-height:1.08!important;
+        white-space:normal!important;
+        text-align:center!important;
+      }
+      .desktopRoseLabel{display:none!important}
+      .mobileRoseLabel{display:inline!important}
+      #legendRose{
+        justify-content:flex-start!important;
+        gap:4px!important;
+      }
+      #legendRose span{
+        flex:1 1 calc(50% - 4px)!important;
+        min-width:0!important;
+        padding:3px 5px!important;
+        font-size:9.6px!important;
+        line-height:1.08!important;
+        gap:4px!important;
+      }
+      #legendRose .swatch{
+        width:10px!important;
+        height:10px!important;
+        border-radius:3px!important;
+        flex:0 0 10px!important;
+      }
+    }
+
+
+
+    /* v1.9: единый ввод места/координат и безопасные статусные окна */
+    .placeInputsStack{
+      display:grid!important;
+      grid-template-columns:1fr!important;
+      gap:6px!important;
+    }
+    .placeInputsStack label{margin:7px 0 3px!important}
+    .placeInputsStack .coordFieldTitle{display:flex!important;margin:7px 0 3px!important}
+    .placeInputsStack .coordFieldTitle label{margin:0!important}
+    .placeActionRow{
+      display:grid!important;
+      grid-template-columns:92px auto!important;
+      gap:8px!important;
+      align-items:center!important;
+      justify-content:start!important;
+      margin-top:9px!important;
+      overflow:visible!important;
+    }
+    .placeActionRow #searchPlaceBtn{height:42px!important;padding:8px 12px!important}
+    .placeActionRow #placeStatus{justify-self:start!important}
+    .compactStatus.neutral .compactStatusBtn,
+    .status.neutral .compactStatusBtn{
+      background:#fff!important;
+      border-color:var(--line)!important;
+      color:var(--ink)!important;
+    }
+    body.original-theme .compactStatus.neutral .compactStatusBtn,
+    body.original-theme .status.neutral .compactStatusBtn{
+      background:#22304d!important;
+      border-color:#2d3a59!important;
+      color:#dce6ff!important;
+    }
+    .compactStatusDetail{
+      position:fixed!important;
+      left:8px!important;
+      top:8px!important;
+      right:auto!important;
+      bottom:auto!important;
+      width:min(360px, calc(100vw - 16px))!important;
+      max-width:calc(100vw - 16px)!important;
+      max-height:min(260px, calc(100vh - 16px))!important;
+      z-index:12000!important;
+    }
+    @media(max-width:720px){
+      .placeInputsStack{gap:5px!important}
+      .placeInputsStack label{font-size:11.5px!important;margin:5px 0 3px!important}
+      .placeInputsStack .coordFieldTitle{margin:5px 0 3px!important}
+      .placeActionRow{
+        grid-template-columns:70px auto!important;
+        gap:5px!important;
+        margin-top:7px!important;
+      }
+      .placeActionRow #searchPlaceBtn{height:36px!important;padding:6px 8px!important}
+      .placeActionRow .compactStatusBtn{max-width:176px!important}
+      .compactStatusDetail{
+        width:min(330px, calc(100vw - 16px))!important;
+        max-height:min(240px, calc(100vh - 16px))!important;
+      }
+    }
+
+
+    /* v1.10: всплывающий статус снова привязан к своей кнопке */
+    .compactStatusDetail{
+      position:absolute!important;
+      left:var(--status-pop-left, auto)!important;
+      right:var(--status-pop-right, 0px)!important;
+      top:calc(100% + 7px)!important;
+      bottom:auto!important;
+      width:var(--status-pop-width, min(360px, calc(100vw - 16px)))!important;
+      max-width:calc(100vw - 16px)!important;
+      max-height:var(--status-pop-max-height, min(260px, 55vh))!important;
+      z-index:12000!important;
+    }
+    .compactStatusDetail.dropAbove{
+      top:auto!important;
+      bottom:calc(100% + 7px)!important;
+    }
+    @media(max-width:720px){
+      .compactStatusDetail{
+        width:var(--status-pop-width, min(330px, calc(100vw - 16px)))!important;
+        max-height:var(--status-pop-max-height, min(240px, 55vh))!important;
+      }
+    }
+
+
   </style>
 </head>
 <body class="simple-mode">
@@ -1331,34 +1704,33 @@
 <main class="wrap grid main">
   <section class="grid">
     <!-- Блок выбора точки: поиск населённого пункта, координаты, геолокация и карта. -->
-    <div class="card">
+    <div class="card" id="placeCard">
       <h2>1. Место</h2>
 
-      <label for="placeInput">Поиск населённого пункта</label>
-      <div class="row">
+      <div class="placeInputsStack">
+        <label for="placeInput">Поиск населённого пункта</label>
         <input id="placeInput" placeholder="Например: Ржев, Осташков, Тверь" autocomplete="off" />
-        <button id="searchPlaceBtn" style="flex:.42">Найти</button>
-      </div>
-      <div class="mini">Поиск идёт через Open‑Meteo Geocoding. Можно выбирать ближайший крупный населённый пункт.</div>
-      <div id="internetStatus" class="status warn hidden">Проверяю доступ к интернету…</div>
-      <div id="suggestions" class="suggestions"></div>
-      <div class="fieldTitle advancedOnly">
-        <label for="coordInput">Или вставьте координаты / ссылку с карт</label>
-        <button id="coordHelpBtn" class="questionBtn" type="button" title="Какие ссылки и координаты можно вставлять" aria-label="Подсказка по координатам">?</button>
-      </div>
-      <textarea id="coordInput" class="advancedOnly" rows="3" placeholder="55.7558, 37.6173&#10;https://yandex.ru/maps/?ll=38.171845%2C55.771064&z=11&#10;https://yandex.ru/maps/?whatshere%5Bpoint%5D=38.055802%2C55.831399&#10;https://maps.google.com/?q=55.7558,37.6173"></textarea>
-      <div class="twoButtonRow advancedOnly">
-        <button id="parseCoordBtn" class="secondary">Применить координаты</button>
-        <button id="geoBtn" class="ghost">Моё местоположение</button>
+
+        <div class="fieldTitle coordFieldTitle">
+          <label for="coordInput">Координаты / ссылка с карт</label>
+          <button id="coordHelpBtn" class="questionBtn" type="button" title="Какие ссылки и координаты можно вставлять" aria-label="Подсказка по координатам">?</button>
+        </div>
+        <input id="coordInput" placeholder="55.7558, 37.6173 или ссылка с карт" autocomplete="off" />
       </div>
 
-      <div id="placeStatus" class="status warn">Место пока не выбрано.</div>
+      <div class="placeActionRow">
+        <button id="searchPlaceBtn" type="button">Найти</button>
+        <div id="placeStatus" class="status warn">Место пока не выбрано.</div>
+      </div>
+      <div id="internetStatus" class="status warn hidden">Проверяю доступ к интернету…</div>
+      <div id="suggestions" class="suggestions"></div>
+
       <div class="mapBox advancedOnly" id="map"></div>
       <div class="mapHint advancedOnly">Кликните по карте, чтобы выбрать точку. Маркер можно перетаскивать.</div>
     </div>
 
     <!-- Блок периода и источников: в простом режиме виден только быстрый выбор периода. -->
-    <div class="card">
+    <div class="card" id="periodCard">
       <h2>2. Период</h2>
       <label for="presetSelect">Быстрый выбор</label>
       <select id="presetSelect">
@@ -1373,7 +1745,7 @@
         <option value="custom">Произвольный период</option>
       </select>
 
-      <div class="row advancedOnly">
+      <div class="row advancedOnly periodTimeRow">
         <div>
           <label for="startTime">Начало</label>
           <input id="startTime" type="datetime-local" />
@@ -1383,25 +1755,6 @@
           <input id="endTime" type="datetime-local" />
         </div>
       </div>
-      <div class="mini advancedOnly">Время трактуется как локальное время выбранной местности. Для координат без города часовой пояс определит API после запроса.</div>
-      <div class="compactPair advancedOnly">
-        <div>
-          <label for="binCount">Секторы розы</label>
-          <select id="binCount">
-            <option value="8">8 направлений</option>
-            <option value="16" selected>16 направлений</option>
-          </select>
-        </div>
-        <div>
-          <label for="minSpeed">Игнорировать ветер слабее</label>
-          <select id="minSpeed">
-            <option value="0">Не игнорировать</option>
-            <option value="0.5" selected>0.5 м/с — почти штиль</option>
-            <option value="1">1 м/с</option>
-            <option value="2">2 м/с</option>
-          </select>
-        </div>
-      </div>
       <div class="sourceLine advancedOnly">
         <div>
           <label for="sourceSelect">Источник данных</label>
@@ -1409,22 +1762,19 @@
             <option value="auto" selected>Авто — выбрать подходящий источник</option>
           </select>
         </div>
-        <div>
-          <label for="sourceTimeout">Таймаут</label>
-          <select id="sourceTimeout" class="timeoutSelect" title="Сколько ждать ответа от каждого источника">
-            <option value="5" selected>5 сек</option><option value="10">10 сек</option><option value="15">15 сек</option><option value="20">20 сек</option><option value="25">25 сек</option><option value="30">30 сек</option><option value="35">35 сек</option><option value="40">40 сек</option><option value="45">45 сек</option><option value="50">50 сек</option><option value="55">55 сек</option><option value="60">60 сек</option>
-          </select>
-        </div>
-        <button id="sourceSettingsBtn" class="iconBtn" type="button" title="Ключи и настройки источников">⚙</button>
+        <button id="sourceSettingsBtn" class="settingsWideBtn" type="button" title="Ключи и настройки источников">⚙ Настройки</button>
       </div>
-      <div class="mini advancedOnly">В режиме «Авто» программа сама перебирает доступные источники. Многие погодные сервисы из некоторых сетей открываются только с ВПН. Если источники не работают, включите ВПН или добавьте API‑ключи: простая инструкция находится справа, за иконкой ⚙. Красный маркер — ключа нет; зелёный — ключ есть; серый — ключ не нужен.</div>
+      <div class="mini advancedOnly">Можно выбрать источник погоды вручную выше. Если не работает — включите ВПН или добавьте API ключ в НАСТРОЙКАХ. Красный маркер — ключа нет; зелёный — ключ есть; серый — ключ не нужен.</div>
 
-      <button id="loadWeatherBtn" class="actionBtn" disabled>Получить ветер и построить розу</button>
-      <div id="loadStatus" class="status">Готов к запросу.</div>
+      <div class="buildActionRow">
+        <button id="loadWeatherBtn" class="actionBtn" disabled>Построить розу ветров</button>
+        <div id="loadStatus" class="status">Готов к запросу.</div>
+      </div>
+      <div id="sourceProgress" class="sourceProgress hidden" aria-hidden="true"></div>
     </div>
 
     <!-- Экспорт и технические окна доступны только в продвинутом режиме. -->
-    <div class="card advancedOnly">
+    <div class="card advancedOnly" id="exportCard">
       <h2>3. Экспорт</h2>
       <div class="grid three">
         <button id="exportCsvBtn" class="secondary">CSV</button>
@@ -1440,7 +1790,7 @@
 
   <section class="grid">
     <!-- Сводка: итоговые метрики, статусы и развёрнутые пояснения формул. -->
-    <div class="card advancedOnly">
+    <div class="card advancedOnly" id="summaryCard">
       <h2>Сводка</h2>
       <div class="summaryTaskMode" aria-label="Тип задачи">
         <label>Тип задачи</label>
@@ -1455,7 +1805,8 @@
         <div class="metric"><span class="metricLabel">Сохранность запаха</span><b>—</b></div>
       </div>
       <div id="analysisText" class="status">После загрузки здесь появится прикладной вывод.</div>
-      <div class="pillbar" id="flags"></div>
+      <button id="technicalTagsBtn" class="smallInfoBtn technicalTagsBtn" type="button" aria-expanded="false">Технические теги</button>
+      <div class="pillbar mobileTagsHidden" id="flags"></div>
       <div class="summaryHelpRow">
         <details id="calcHelp">
           <summary>Как читать расчет и стабильность</summary>
@@ -1480,8 +1831,8 @@
     <div class="card wideCard">
       <h2>Роза ветров и перенос запаха</h2>
       <div class="segmented" id="roseModeSwitch" aria-label="Режим отображения розы">
-        <button type="button" data-rose-mode="wind" class="active">Только ветер</button>
-        <button type="button" data-rose-mode="scent">Только перенос запаха</button>
+        <button type="button" data-rose-mode="wind" class="active"><span class="desktopRoseLabel">Только ветер</span><span class="mobileRoseLabel">Ветер</span></button>
+        <button type="button" data-rose-mode="scent"><span class="desktopRoseLabel">Только перенос запаха</span><span class="mobileRoseLabel">Перенос запаха</span></button>
         <button type="button" data-rose-mode="both">Наложение</button>
       </div>
       <div class="canvasBox roseCanvasBox">
@@ -1572,6 +1923,30 @@
     </div>
     <p class="mini">Ключи сохраняются только в localStorage этого браузера. Вставляем ключи и жмем сохранить. Если один источник не работает, подключается другой. Автосохранение включено: если пользователь ввёл ключ и закрыл окно, значение всё равно останется в этом браузере.</p>
     <p class="mini">В режиме «Авто» программа перебирает подходящие источники: сначала без ключа, затем с добавленными персональными ключами, а затем источники с отдельным доступом. При анализе прошлого периода источники только с прогнозом пропускаются; при прогнозе пропускаются источники только с архивом.</p>
+    <div class="settingsGrid sourceControlSettings">
+      <div class="settingsItem">
+        <label for="binCount">Секторы розы</label>
+        <select id="binCount">
+          <option value="8">8 направлений</option>
+          <option value="16" selected>16 направлений</option>
+        </select>
+      </div>
+      <div class="settingsItem">
+        <label for="minSpeed">Игнорировать ветер слабее</label>
+        <select id="minSpeed">
+          <option value="0">Не игнорировать</option>
+          <option value="0.5" selected>0.5 м/с — почти штиль</option>
+          <option value="1">1 м/с</option>
+          <option value="2">2 м/с</option>
+        </select>
+      </div>
+      <div class="settingsItem">
+        <label for="sourceTimeout">Таймаут источников</label>
+        <select id="sourceTimeout" class="timeoutSelect" title="Сколько ждать ответа от каждого источника">
+          <option value="5" selected>5 сек</option><option value="10">10 сек</option><option value="15">15 сек</option><option value="20">20 сек</option><option value="25">25 сек</option><option value="30">30 сек</option><option value="35">35 сек</option><option value="40">40 сек</option><option value="45">45 сек</option><option value="50">50 сек</option><option value="55">55 сек</option><option value="60">60 сек</option>
+        </select>
+      </div>
+    </div>
     <div class="settingsGrid">
       <div class="settingsItem topSourceKey">
         <label for="weatherApiKey">WeatherAPI.com key</label>
@@ -1958,10 +2333,99 @@
   }
 
 
+  // Подбирает короткую надпись для компактного статуса периода.
+  function compactStatusTitle(text, kind=''){
+    const t = String(text || '');
+    if (kind === 'bad' || /Ошибка|Нет доступа|не вернул|Необходимо включить|не распознать|не получена|не поддерживает/i.test(t)) return 'Ошибка';
+    if (/Пробую источник|Проверяю|Проверяем|Запрашиваю/i.test(t)) return 'Проверяем доступ';
+    if (/Готово\. Получено|Источник:|Проверка источников/i.test(t)) return 'Роза построена';
+    if (/Населённый пункт выбран|Координаты применены|Геолокация получена|Жду построения/i.test(t)) return 'Жду построения';
+    if (/Автовыбор|Выбран источник|Таймаут источников|Ключи источников/i.test(t)) return 'Настройки источника';
+    if (/Готов к запросу|Место пока не выбрано/i.test(t)) return 'Выберите место';
+    return 'Статус';
+  }
+
+  // Держит раскрывающееся окно статуса рядом со своей кнопкой и внутри видимой области экрана.
+  function positionCompactStatusDetail(btn, detail){
+    if (!btn || !detail) return;
+    const margin = 8;
+    const minHeight = 96;
+    const maxBoxHeight = 260;
+    const maxBoxWidth = 360;
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    const parent = detail.parentElement;
+    const parentRect = parent?.getBoundingClientRect?.() || {left:0};
+    const btnRect = btn.getBoundingClientRect();
+    const width = Math.max(220, Math.min(maxBoxWidth, vw - margin * 2));
+
+    // По умолчанию окно раскрывается под кнопкой. Если справа/слева не помещается,
+    // оно сдвигается в границы экрана, но остаётся привязанным к этой же кнопке.
+    let viewportLeft = btnRect.left;
+    viewportLeft = Math.max(margin, Math.min(viewportLeft, vw - width - margin));
+    const relativeLeft = viewportLeft - parentRect.left;
+    detail.style.setProperty('--status-pop-width', `${Math.round(width)}px`);
+    detail.style.setProperty('--status-pop-left', `${Math.round(relativeLeft)}px`);
+    detail.style.setProperty('--status-pop-right', 'auto');
+
+    const belowSpace = vh - btnRect.bottom - 7 - margin;
+    const aboveSpace = btnRect.top - 7 - margin;
+    const useAbove = belowSpace < minHeight && aboveSpace > belowSpace;
+    detail.classList.toggle('dropAbove', useAbove);
+    const availableHeight = useAbove ? aboveSpace : belowSpace;
+    const safeHeight = Math.max(minHeight, Math.min(maxBoxHeight, availableHeight || maxBoxHeight));
+    detail.style.setProperty('--status-pop-max-height', `${Math.round(safeHeight)}px`);
+  }
+
+  // Рисует компактный раскрывающийся статус: снаружи короткая кнопка, внутри подробность по клику.
+  function renderCompactStatus(el, text, kind='', forcedTitle=''){
+    if (!el) return;
+    const title = forcedTitle || compactStatusTitle(text, kind);
+    el.className = 'status compactStatus' + (kind ? ' ' + kind : '');
+    el.dataset.compactText = String(text || '');
+    el.innerHTML = `<button type="button" class="compactStatusBtn" aria-expanded="false">${escapeHtml(title)}</button><div class="compactStatusDetail hidden">${escapeHtml(text || '')}</div>`;
+    const btn = el.querySelector('.compactStatusBtn');
+    const detail = el.querySelector('.compactStatusDetail');
+    btn?.addEventListener('click', () => {
+      document.querySelectorAll('.compactStatusDetail:not(.hidden)').forEach(openDetail => {
+        if (openDetail !== detail) {
+          openDetail.classList.add('hidden');
+          openDetail.parentElement?.querySelector('.compactStatusBtn')?.setAttribute('aria-expanded', 'false');
+        }
+      });
+      const willOpen = detail.classList.contains('hidden');
+      detail.classList.toggle('hidden', !willOpen);
+      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      if (willOpen) requestAnimationFrame(() => positionCompactStatusDetail(btn, detail));
+    });
+  }
+
   // Устанавливает текст и визуальный статус в информационном блоке.
   function setStatus(el, text, kind='') {
+    if (!el) return;
+    if (el.id === 'loadStatus' || el.id === 'placeStatus') {
+      renderCompactStatus(el, text, kind);
+      return;
+    }
     el.className = 'status' + (kind ? ' ' + kind : '');
     el.textContent = text;
+  }
+
+  // Показывает выбранное место одной кнопкой и раскрывает координаты только по нажатию.
+  function renderSelectedPlaceStatus(){
+    const el = $('placeStatus');
+    if (!el || !state.location) return;
+    const l = state.location;
+    const detail = `${l.name || 'Точка по координатам'}\nШирота: ${round(l.latitude,5)}, долгота: ${round(l.longitude,5)}${l.timezone ? `\nЧасовой пояс: ${l.timezone}` : ''}\nВыберите период и нажмите «Построить розу ветров».`;
+    renderCompactStatus(el, detail, 'good', 'Место выбрано');
+  }
+
+  // Показывает или скрывает анимированный индикатор проверки погодных источников.
+  function setSourceProgress(active){
+    const el = $('sourceProgress');
+    if (!el) return;
+    el.classList.toggle('hidden', !active);
+    el.setAttribute('aria-hidden', active ? 'false' : 'true');
   }
 
   let toastTimer = null;
@@ -2090,8 +2554,7 @@
       updateActionState();
       return;
     }
-    const l = state.location;
-    setStatus($('placeStatus'), `${l.name || 'Точка по координатам'}\nШирота: ${round(l.latitude,5)}, долгота: ${round(l.longitude,5)}${l.timezone ? `\nЧасовой пояс: ${l.timezone}` : ''}\nМесто выбрано. Выберите период и нажмите «Получить ветер и построить розу».`, 'good');
+    renderSelectedPlaceStatus();
     moveMapToLocation();
     updateActionState();
   }
@@ -2196,13 +2659,29 @@
           $('suggestions').innerHTML = '';
           updatePlaceStatus();
           applyPreset();
-          setStatus($('loadStatus'), 'Населённый пункт выбран. Выберите период и нажмите зелёную кнопку построения розы.', 'good');
+          setStatus($('loadStatus'), 'Жду построения. Населённый пункт выбран, период можно менять выше.', 'neutral');
         });
         box.appendChild(div);
       }
     } catch(e) {
       box.innerHTML = `<div class="mini">Ошибка поиска: ${escapeHtml(e.message)}</div>`;
     }
+  }
+
+  // Единая кнопка поиска: сначала пробует координаты/ссылку, затем населённый пункт.
+  function runPlaceFind(){
+    const coordText = ($('coordInput')?.value || '').trim();
+    const placeText = ($('placeInput')?.value || '').trim();
+    if (coordText) {
+      applyCoordinates();
+      return;
+    }
+    if (placeText.length >= 2) {
+      searchPlace();
+      return;
+    }
+    $('suggestions').innerHTML = '<div class="mini">Введите населённый пункт или координаты.</div>';
+    setStatus($('placeStatus'), 'Введите населённый пункт или координаты.', 'warn');
   }
 
   // Экранирует пользовательский/внешний текст перед вставкой в innerHTML.
@@ -2371,7 +2850,7 @@ function pairFromLonLat(lon, lat){
       };
       updatePlaceStatus();
       applyPreset();
-      setStatus($('loadStatus'), 'Координаты применены. Выберите период и нажмите зелёную кнопку построения розы.', 'good');
+      setStatus($('loadStatus'), 'Жду построения. Координаты применены, период можно менять выше.', 'neutral');
     } catch(e) {
       setStatus($('placeStatus'), e.message, 'bad');
     }
@@ -2385,15 +2864,19 @@ function pairFromLonLat(lon, lat){
     }
     setStatus($('placeStatus'), 'Запрашиваю геолокацию у браузера…');
     navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      if ($('coordInput')) $('coordInput').value = `${round(lat,6)}, ${round(lon,6)}`;
       state.location = {
-        name: 'Моё местоположение',
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
+        name: 'Текущие координаты',
+        latitude: lat,
+        longitude: lon,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
         elevation: null
       };
       updatePlaceStatus();
       applyPreset();
+      setStatus($('loadStatus'), 'Жду построения. Геолокация получена и применена.', 'neutral');
     }, err => {
       setStatus($('placeStatus'), `Геолокация не получена: ${err.message}`, 'bad');
     }, {enableHighAccuracy:true, timeout:10000});
@@ -2590,7 +3073,8 @@ function periodRelation(start, end){
     ]);
     if (!openOk && !nasaOk) {
       const el = $('loadStatus');
-      if (el && (!el.textContent || el.textContent.trim() === 'Готов к запросу.')) {
+      const current = el?.dataset?.compactText || el?.textContent || '';
+      if (el && (!current || current.trim().startsWith('Готов к запросу'))) {
         setStatus(el, 'Необходимо включить ВПН или вставить API ключ в продвинутом режиме', 'warn');
       }
     }
@@ -3398,6 +3882,7 @@ function periodRelation(start, end){
     const errors = [];
     state.lastTriedSources = [];
     state.lastSourceMeta = null;
+    setSourceProgress(true);
     state.keepInitialAnalysis = false;
     state.initialAnalysisText = '';
     state.initialAnalysisKind = '';
@@ -3432,6 +3917,7 @@ function periodRelation(start, end){
         state.initialAnalysisKind = (($('analysisText')?.className || '').match(/\b(good|warn|bad)\b/) || [,''])[1];
         state.keepInitialAnalysis = true;
         const triedText = state.lastTriedSources.map(x => `${sourceHumanName(x.id)}: ${x.status === 'ok' ? 'успех' : 'ошибка'}`).join('; ');
+        setSourceProgress(false);
         setStatus($('loadStatus'), `Готово. Получено ${result.rows.length} почасовых точек. Источник: ${result.sourceLabel}.${futurePack.message || ''}\nПроверка источников: ${triedText}.`, 'good');
         return;
       } catch(e) {
@@ -3445,6 +3931,7 @@ function periodRelation(start, end){
       }
     }
     const suffix = errors.length ? '\n' + errors.map(x => '• ' + x).join('\n') : '';
+    setSourceProgress(false);
     setStatus($('loadStatus'), 'Нет доступа к источникам информации или ни один источник не вернул данные для выбранного периода.' + suffix, 'bad');
     renderSourceInfo();
   }
@@ -4415,7 +4902,8 @@ function buildTimeFocusTicks(){
     const displayName = metricDirDisplayName(deg, bins);
     const short = `${displayName} · ${round(deg,0)}°`;
     let className = '';
-    if (short.length > 16) className = 'wideDir';
+    if (short.length > 22) className = 'ultraDir';
+    else if (short.length > 16) className = 'wideDir';
     else if (short.length > 11) className = 'longDir';
     return {short, full, className};
   }
@@ -5213,7 +5701,46 @@ function buildTimeFocusTicks(){
       renderLegend($('legendRose'));
       renderTimeDial();
     }
+    relocateExportCard();
     setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 80);
+  }
+
+
+  // Переносит экспорт вниз на мобильном, но возвращает его в левую колонку на десктопе.
+  function relocateExportCard(){
+    const exportCard = $('exportCard');
+    const periodCard = $('periodCard');
+    const rightColumn = document.querySelector('main.wrap > section.grid:nth-of-type(2)');
+    if (!exportCard || !periodCard || !rightColumn) return;
+    const isMobile = window.matchMedia('(max-width:720px)').matches;
+    if (isMobile) {
+      if (exportCard.parentElement !== rightColumn) rightColumn.appendChild(exportCard);
+    } else {
+      const leftColumn = periodCard.parentElement;
+      if (leftColumn && exportCard.parentElement !== leftColumn) {
+        periodCard.insertAdjacentElement('afterend', exportCard);
+      } else if (leftColumn && periodCard.nextElementSibling !== exportCard) {
+        periodCard.insertAdjacentElement('afterend', exportCard);
+      }
+    }
+  }
+
+  // После успешного построения на мобильном переводит пользователя к сводке.
+  function scrollSummaryOnMobile(){
+    if (!window.matchMedia('(max-width:720px)').matches || state.uiMode !== 'advanced') return;
+    const el = $('summaryCard');
+    if (!el) return;
+    setTimeout(() => el.scrollIntoView({behavior:'smooth', block:'start'}), 140);
+  }
+
+  // Скрывает/раскрывает технические теги под сводкой на мобильном.
+  function toggleTechnicalTags(){
+    const flags = $('flags');
+    const btn = $('technicalTagsBtn');
+    if (!flags || !btn) return;
+    const shown = flags.classList.toggle('show');
+    btn.setAttribute('aria-expanded', shown ? 'true' : 'false');
+    btn.textContent = shown ? 'Скрыть технические теги' : 'Технические теги';
   }
 
 
@@ -5356,15 +5883,16 @@ function buildTimeFocusTicks(){
   $('advancedModeBtn')?.addEventListener('click', () => setUiMode('advanced'));
   $('themeToggleBtn')?.addEventListener('click', () => applyTheme(isOriginalTheme() ? 'grid' : 'original'));
   $('headerHelpBtn')?.addEventListener('click', openHelpInfo);
+  $('technicalTagsBtn')?.addEventListener('click', toggleTechnicalTags);
 
   // Ввод места: поиск города запускается с небольшой задержкой, чтобы не слать запрос на каждый символ.
   $('placeInput').addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(searchPlace, 450);
   });
-  $('searchPlaceBtn').addEventListener('click', searchPlace);
-  $('parseCoordBtn').addEventListener('click', applyCoordinates);
-  $('geoBtn').addEventListener('click', getBrowserGeolocation);
+  $('searchPlaceBtn').addEventListener('click', runPlaceFind);
+  $('placeInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') runPlaceFind(); });
+  $('coordInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') runPlaceFind(); });
   $('presetSelect').addEventListener('change', applyPreset);
   $('binCount').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
   $('minSpeed').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
@@ -5375,7 +5903,7 @@ function buildTimeFocusTicks(){
     const timeout = getSourceTimeoutMs()/1000;
     const keyField = sourceKeyField(src);
     if (src === 'auto') {
-      setStatus($('loadStatus'), `Автовыбор источника включён. Программа учитывает период: для прошлого не берёт источники только с прогнозом, для будущего не берёт источники только с архивом. Таймаут: ${timeout} сек на источник.`, '');
+      setStatus($('loadStatus'), `Можно выбрать источник погоды вручную выше. Если не работает — включите ВПН или добавьте API ключ в НАСТРОЙКАХ. Красный маркер — ключа нет; зелёный — ключ есть; серый — ключ не нужен. Таймаут: ${timeout} сек на источник.`, '');
       return;
     }
     let periodNote = '';
@@ -5397,7 +5925,7 @@ function buildTimeFocusTicks(){
   });
 
   // Основные действия пользователя: загрузка погоды, экспорт, переключение режимов графика и таблицы.
-  $('loadWeatherBtn').addEventListener('click', () => loadWeather().catch(e => setStatus($('loadStatus'), 'Ошибка: ' + e.message, 'bad')));
+  $('loadWeatherBtn').addEventListener('click', () => loadWeather().catch(e => { setSourceProgress(false); setStatus($('loadStatus'), 'Ошибка: ' + e.message, 'bad'); }));
   $('exportCsvBtn').addEventListener('click', exportCsv);
   $('copyReportBtn').addEventListener('click', copyReport);
   $('exportRosePngBtn').addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png'));
@@ -5415,7 +5943,8 @@ function buildTimeFocusTicks(){
     setSwitchActive('dataModeSwitch', 'data-data-mode', state.dataMode);
     if (state.stats) renderDataPanel();
   }));
-  window.addEventListener('resize', () => { if (state.stats) { drawRose($('roseCanvas')); renderTimeDial(); } });
+  window.addEventListener('resize', () => { relocateExportCard(); document.querySelectorAll('.compactStatusDetail:not(.hidden)').forEach(d => positionCompactStatusDetail(d.parentElement?.querySelector('.compactStatusBtn'), d)); if (state.stats) { drawRose($('roseCanvas')); renderTimeDial(); } });
+  window.addEventListener('scroll', () => { document.querySelectorAll('.compactStatusDetail:not(.hidden)').forEach(d => positionCompactStatusDetail(d.parentElement?.querySelector('.compactStatusBtn'), d)); }, {passive:true});
 
 
   // Старт приложения: восстановление настроек, первичная отрисовка и фоновые проверки сети.
@@ -5426,8 +5955,11 @@ function buildTimeFocusTicks(){
   setupCollapsibleCards();
   loadTaskMode();
   setUiMode('simple');
+  relocateExportCard();
   initMap();
   applyPreset();
+  setStatus($('loadStatus'), 'Готов к запросу. Сначала выберите место.', '');
+  setStatus($('placeStatus'), 'Место пока не выбрано.', 'warn');
   applyTheme(localStorage.getItem('psr_windrose_theme') || 'grid');
   drawEmpty($('roseCanvas'), 'Роза ветров / перенос запаха');
   renderLegend($('legendRose'));

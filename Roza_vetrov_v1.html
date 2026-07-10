@@ -1313,7 +1313,7 @@
     }
 
 
-    /* v1.6: компактные статусы, координаты в одну строку, настройки источников и прогресс загрузки */
+    /* v1.7: компактные статусы, корректный итог источников и адаптивная выборка длинных периодов */
     .compactStatus{padding:8px 9px!important;white-space:normal!important}
     .compactStatusBtn{width:auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:7px 12px!important;border-radius:999px!important;font-size:13px!important;line-height:1.15!important;font-weight:850!important;background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important}
     .compactStatus.good .compactStatusBtn,.status.good .compactStatusBtn{background:#d9f4e8!important;border-color:#9ed8bf!important;color:#063d29!important}
@@ -1685,6 +1685,55 @@
     }
 
 
+
+    /* v1.8: настройка детализации длинных периодов */
+    .longPeriodSamplingSetting{
+      margin-top:14px;
+      padding:12px 13px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fafdff;
+    }
+    .longPeriodSamplingLabel{
+      display:flex!important;
+      align-items:flex-start!important;
+      gap:10px!important;
+      margin:0!important;
+      color:var(--ink)!important;
+      font-size:13px!important;
+      line-height:1.35!important;
+      font-weight:800!important;
+      cursor:pointer;
+    }
+    .longPeriodSamplingLabel input[type="checkbox"]{
+      appearance:auto!important;
+      width:18px!important;
+      height:18px!important;
+      min-width:18px!important;
+      flex:0 0 18px!important;
+      margin:1px 0 0!important;
+      padding:0!important;
+      border:0!important;
+      box-shadow:none!important;
+      accent-color:var(--accent);
+      cursor:pointer;
+    }
+    .longPeriodSamplingSetting .mini{
+      display:block;
+      margin:7px 0 0 28px;
+      line-height:1.35;
+    }
+    body.original-theme .longPeriodSamplingSetting{
+      background:#0d1528!important;
+      border-color:#2d3a59!important;
+    }
+    body.original-theme .longPeriodSamplingLabel{color:#eef3ff!important}
+    @media(max-width:720px){
+      .longPeriodSamplingSetting{padding:9px 10px;border-radius:11px}
+      .longPeriodSamplingLabel{font-size:12px!important;gap:8px!important}
+      .longPeriodSamplingSetting .mini{margin-left:26px;font-size:11px!important}
+    }
+
   </style>
 </head>
 <body class="simple-mode">
@@ -1989,6 +2038,13 @@
       <div class="settingsItem"><label for="tomorrowKey">Tomorrow.io API key</label><input id="tomorrowKey" type="password" placeholder="Tomorrow.io apikey" autocomplete="off" /><div class="mini"><a href="https://app.tomorrow.io/signup" target="_blank" rel="noopener">Получить бесплатный ключ</a> · <a href="https://docs.tomorrow.io/reference/weather-forecast" target="_blank" rel="noopener">прогноз</a> · <a href="https://docs.tomorrow.io/reference/retrieve-historical-timelines" target="_blank" rel="noopener">история</a>: аккаунт имеет лимиты, при их превышении источник вернёт 429.</div></div>
     </div>
     <div class="row" style="margin-top:14px"><button id="saveSourceSettingsBtn" type="button">Сохранить</button><button id="clearSourceSettingsBtn" class="secondary" type="button">Очистить ключи</button></div>
+    <div class="longPeriodSamplingSetting">
+      <label class="longPeriodSamplingLabel" for="disableLongPeriodSampling">
+        <input id="disableLongPeriodSampling" type="checkbox" />
+        <span>Не уменьшать количество данных для периодов длиннее 7 и 30 дней</span>
+      </label>
+      <span class="mini">Возвращает прежний расчёт по всем полученным погодным точкам. На длинных периодах обработка, таблицы и графики могут работать заметно медленнее. Настройка сохраняется автоматически.</span>
+    </div>
   </div>
 </div>
 
@@ -2177,7 +2233,11 @@
     initialAnalysisKind: '',
     keepInitialAnalysis: false,
     initialFocusTime: null,
-    taskMode: 'pss'
+    taskMode: 'pss',
+    samplingMode: 'hourly',
+    samplingLabel: 'почасовые данные без прореживания',
+    rawRowCount: 0,
+    loadAttemptSeq: 0
   };
 
 
@@ -2336,9 +2396,16 @@
   // Подбирает короткую надпись для компактного статуса периода.
   function compactStatusTitle(text, kind=''){
     const t = String(text || '');
-    if (kind === 'bad' || /Ошибка|Нет доступа|не вернул|Необходимо включить|не распознать|не получена|не поддерживает/i.test(t)) return 'Ошибка';
+    // Явный итоговый класс важнее слов внутри подробного текста. Успешный
+    // результат может содержать историю неудачных источников со словом «ошибка».
+    if (kind === 'good') {
+      if (/Готово\.|Источник:|Проверка источников|Роза построена/i.test(t)) return 'Роза построена';
+      return 'Готово';
+    }
+    if (kind === 'bad') return 'Ошибка';
     if (/Пробую источник|Проверяю|Проверяем|Запрашиваю/i.test(t)) return 'Проверяем доступ';
     if (/Готово\. Получено|Источник:|Проверка источников/i.test(t)) return 'Роза построена';
+    if (/Ошибка|Нет доступа|не вернул|Необходимо включить|не распознать|не получена|не поддерживает/i.test(t)) return 'Ошибка';
     if (/Населённый пункт выбран|Координаты применены|Геолокация получена|Жду построения/i.test(t)) return 'Жду построения';
     if (/Автовыбор|Выбран источник|Таймаут источников|Ключи источников/i.test(t)) return 'Настройки источника';
     if (/Готов к запросу|Место пока не выбрано/i.test(t)) return 'Выберите место';
@@ -2430,13 +2497,13 @@
 
   let toastTimer = null;
   // Показывает короткое всплывающее уведомление без изменения основного интерфейса.
-  function showToast(text, kind='good'){
+  function showToast(text, kind='good', durationMs=2600){
     const el = $('toast');
     if (!el) return;
     el.textContent = text;
     el.className = 'toast show' + (kind ? ' ' + kind : '');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+    toastTimer = setTimeout(() => el.classList.remove('show'), Math.max(1200, Number(durationMs) || 2600));
   }
 
   // Форматирует число для UI, убирая лишние нули после запятой.
@@ -2890,7 +2957,10 @@ function getPeriodWindow(){
     start = floorToHourInput(start);
     end = floorToHourInput(end);
     if (start >= end) throw new Error('Начало периода должно быть раньше конца.');
-    return {start, end, startDate:new Date(start), endDate:new Date(end)};
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const durationHours = Math.max(0, (endDate - startDate) / 3600000);
+    return {start, end, startDate, endDate, durationHours};
   }
 
   // Выбирает forecast или archive endpoint Open-Meteo по удалённости периода от текущего времени.
@@ -3080,11 +3150,153 @@ function periodRelation(start, end){
     }
   }
 
-  // Оставляет только валидные почасовые строки внутри выбранного периода.
+  // Оставляет только валидные погодные строки внутри выбранного периода.
   function filterRowsToPeriod(rows, start, end){
     return rows
       .filter(r => r && r.time && r.time >= start && r.time <= end && Number.isFinite(r.speed) && Number.isFinite(r.dir))
       .sort((a,b) => a.time.localeCompare(b.time));
+  }
+
+  const LONG_PERIOD_SAMPLING_STORAGE = 'psr_disable_long_period_sampling';
+
+  // Проверяет, отключил ли пользователь автоматическое уменьшение объёма длинных периодов.
+  function isLongPeriodSamplingDisabled(){
+    const checkbox = $('disableLongPeriodSampling');
+    if (checkbox) return Boolean(checkbox.checked);
+    return localStorage.getItem(LONG_PERIOD_SAMPLING_STORAGE) === '1';
+  }
+
+  // Определяет детализацию анализа по длине выбранного периода.
+  function periodSamplingPlan(period){
+    const hours = Number(period?.durationHours) || 0;
+    const samplingDisabled = isLongPeriodSamplingDisabled();
+    if (samplingDisabled) {
+      return {
+        mode:'hourly',
+        label:'все исходные погодные точки — ужатие отключено',
+        warning: hours > 30 * 24
+          ? 'Период длиннее 30 дней. Автоматическое ужатие отключено в настройках, поэтому будут обработаны все полученные погодные точки. Построение может занять больше времени.'
+          : ''
+      };
+    }
+    if (hours > 30 * 24) {
+      return {
+        mode:'daily',
+        label:'одно усреднённое значение за каждый день',
+        warning:'Период длиннее 30 дней — это слишком длинный интервал для почасовой обработки. Роза будет построена по одному усреднённому значению за каждый день.'
+      };
+    }
+    if (hours > 7 * 24) {
+      return {mode:'sixHourly', label:'одна точка каждые 6 часов', warning:''};
+    }
+    return {mode:'hourly', label:'почасовые данные без прореживания', warning:''};
+  }
+
+  function numericFieldValues(rows, field){
+    return (rows || [])
+      .map(r => r?.[field])
+      .filter(v => v !== null && v !== undefined && v !== '')
+      .map(Number)
+      .filter(Number.isFinite);
+  }
+
+  function meanField(rows, field){
+    const values = numericFieldValues(rows, field);
+    return values.length ? values.reduce((a,b)=>a+b,0) / values.length : null;
+  }
+
+  function sumField(rows, field){
+    const values = numericFieldValues(rows, field);
+    return values.length ? values.reduce((a,b)=>a+b,0) : null;
+  }
+
+  function maxField(rows, field){
+    const values = numericFieldValues(rows, field);
+    return values.length ? Math.max(...values) : null;
+  }
+
+  // Усредняет метеорологическое направление как вектор с весом по скорости.
+  function meanWindDirection(rows){
+    let x = 0, y = 0, weightSum = 0;
+    for (const r of rows || []) {
+      const dir = Number(r?.dir);
+      const speed = Number(r?.speed);
+      if (!Number.isFinite(dir) || !Number.isFinite(speed)) continue;
+      const weight = Math.max(speed, 0.1);
+      const rad = normDeg(dir) * Math.PI / 180;
+      x += Math.sin(rad) * weight;
+      y += Math.cos(rad) * weight;
+      weightSum += weight;
+    }
+    return weightSum > 0 ? normDeg(Math.atan2(x, y) * 180 / Math.PI) : null;
+  }
+
+  // Оставляет одну фактическую точку не чаще заданного шага в часах.
+  function sampleRowsByHours(rows, stepHours){
+    const sorted = [...(rows || [])].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+    const result = [];
+    let lastMs = -Infinity;
+    const stepMs = Math.max(1, Number(stepHours) || 1) * 3600000;
+    for (const row of sorted) {
+      const ms = localDateFromHour(row.time)?.getTime();
+      if (!Number.isFinite(ms)) continue;
+      if (!result.length || ms - lastMs >= stepMs) {
+        result.push({...row, _samplingMode:'sixHourly'});
+        lastMs = ms;
+      }
+    }
+    return result;
+  }
+
+  // Собирает один усреднённый погодный набор на календарный день.
+  function aggregateRowsByDay(rows){
+    const groups = new Map();
+    for (const row of rows || []) {
+      const day = datePart(String(row.time || ''));
+      if (!day) continue;
+      if (!groups.has(day)) groups.set(day, []);
+      groups.get(day).push(row);
+    }
+    const result = [];
+    for (const [day, groupRaw] of groups) {
+      const group = [...groupRaw].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+      const middle = group[Math.floor(group.length / 2)] || group[0];
+      const precipTotal = sumField(group, 'precip');
+      const row = {
+        time: middle?.time || `${day}T12:00`,
+        speed: meanField(group, 'speed'),
+        dir: meanWindDirection(group),
+        gust: maxField(group, 'gust'),
+        temp: meanField(group, 'temp'),
+        rh: meanField(group, 'rh'),
+        precip: meanField(group, 'precip'),
+        _precipTotal: precipTotal,
+        cloud: meanField(group, 'cloud'),
+        shortwave: meanField(group, 'shortwave'),
+        directRad: meanField(group, 'directRad'),
+        diffuseRad: meanField(group, 'diffuseRad'),
+        solarEnergy: meanField(group, 'solarEnergy'),
+        uv: meanField(group, 'uv'),
+        _samplingMode:'daily',
+        _aggregatedFrom:group.length
+      };
+      if (Number.isFinite(row.speed) && Number.isFinite(row.dir)) result.push(row);
+    }
+    return result.sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+  }
+
+  // Применяет прореживание или суточное усреднение перед анализом и отрисовкой.
+  function applyPeriodSampling(rows, period){
+    const plan = periodSamplingPlan(period);
+    const rawRows = [...(rows || [])].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+    if (plan.mode === 'daily') return {...plan, rawCount:rawRows.length, rows:aggregateRowsByDay(rawRows)};
+    if (plan.mode === 'sixHourly') return {...plan, rawCount:rawRows.length, rows:sampleRowsByHours(rawRows, 6)};
+    return {...plan, rawCount:rawRows.length, rows:rawRows.map(r=>({...r, _samplingMode:'hourly'}))};
+  }
+
+  function samplingCountUnit(scent=false){
+    if (state.samplingMode === 'hourly') return scent ? 'усл.ч' : 'ч';
+    return scent ? 'усл.точ.' : 'точ.';
   }
 
   // Переводит часовой ключ NASA POWER из UTC в локальный час точки.
@@ -3877,8 +4089,10 @@ function periodRelation(start, end){
   // Главный сценарий загрузки: выбирает источники, получает rows, строит анализ и UI.
   async function loadWeather(){
     const period = getPeriodWindow();
+    const samplingPlan = periodSamplingPlan(period);
     const sources = selectedSourceIds(period.start, period.end);
     const manual = ($('sourceSelect')?.value || 'auto') !== 'auto';
+    const attemptId = ++state.loadAttemptSeq;
     const errors = [];
     state.lastTriedSources = [];
     state.lastSourceMeta = null;
@@ -3887,15 +4101,25 @@ function periodRelation(start, end){
     state.initialAnalysisText = '';
     state.initialAnalysisKind = '';
     state.initialFocusTime = null;
+    if (samplingPlan.warning) showToast(samplingPlan.warning, 'warn', 8500);
     for (const id of sources) {
       state.lastTriedSources.push({id, status:'trying'});
       setStatus($('loadStatus'), `Пробую источник: ${sourceHumanName(id)}…`);
       try {
         const result = await fetchWeatherForSource(id, period);
-        if (!result.rows?.length) throw new Error('источник ответил, но не дал подходящих почасовых точек.');
+        if (!result.rows?.length) throw new Error('источник ответил, но не дал подходящих погодных точек.');
 
-        const originalRows = [...result.rows].sort((a,b) => String(a.time).localeCompare(String(b.time)));
-        const futurePack = await fetchFuture24RowsForSlider(period);
+        const sampled = applyPeriodSampling(result.rows, period);
+        const originalRows = sampled.rows;
+        if (!originalRows.length) throw new Error('после отбора по периоду не осталось пригодных погодных точек.');
+        // Для длинных периодов не добавляем ещё 24 почасовые прогнозные точки:
+        // слайдер работает по уже отобранным 6-часовым или суточным значениям.
+        const futurePack = sampled.mode === 'hourly'
+          ? await fetchFuture24RowsForSlider(period)
+          : {rows:[], message:''};
+        state.samplingMode = sampled.mode;
+        state.samplingLabel = sampled.label;
+        state.rawRowCount = sampled.rawCount;
         state.periodRows = originalRows.map(r => ({...r, timeFocusWeight:1}));
         state.fullRows = dedupeRowsByTime([...state.periodRows, ...(futurePack.rows || [])]);
         state.rows = state.periodRows.map(r => ({...r, timeFocusWeight:1}));
@@ -3906,10 +4130,10 @@ function periodRelation(start, end){
         state.lastApiUrl = result.url;
         state.lastEndpoint = result.endpoint;
         state.lastSourceLabel = result.sourceLabel;
-        state.lastSourceMeta = result.meta;
+        state.lastSourceMeta = {...(result.meta || {}), sampling:sampled.label, rawRowCount:sampled.rawCount, analyzedRowCount:originalRows.length};
         const last = state.lastTriedSources[state.lastTriedSources.length-1];
         last.status = 'ok';
-        last.message = `${result.rows.length} ч`;
+        last.message = `${originalRows.length} точек`;
         updatePlaceStatus();
         state.stats = analyze(state.rows);
         renderAll();
@@ -3917,8 +4141,15 @@ function periodRelation(start, end){
         state.initialAnalysisKind = (($('analysisText')?.className || '').match(/\b(good|warn|bad)\b/) || [,''])[1];
         state.keepInitialAnalysis = true;
         const triedText = state.lastTriedSources.map(x => `${sourceHumanName(x.id)}: ${x.status === 'ok' ? 'успех' : 'ошибка'}`).join('; ');
+        const samplingText = sampled.mode === 'hourly'
+          ? `Получено ${originalRows.length} почасовых точек.`
+          : sampled.mode === 'sixHourly'
+            ? `Источник вернул ${sampled.rawCount} погодных точек; для анализа оставлено ${originalRows.length} точек с шагом 6 часов.`
+            : `Период длиннее 30 дней. Источник вернул ${sampled.rawCount} погодных точек; для анализа сформировано ${originalRows.length} суточных средних значений.`;
         setSourceProgress(false);
-        setStatus($('loadStatus'), `Готово. Получено ${result.rows.length} почасовых точек. Источник: ${result.sourceLabel}.${futurePack.message || ''}\nПроверка источников: ${triedText}.`, 'good');
+        setStatus($('loadStatus'), `Готово. ${samplingText} Источник: ${result.sourceLabel}.${futurePack.message || ''}
+Режим выборки: ${sampled.label}.
+Проверка источников: ${triedText}.`, 'good');
         return;
       } catch(e) {
         console.warn(id, e);
@@ -3931,8 +4162,18 @@ function periodRelation(start, end){
       }
     }
     const suffix = errors.length ? '\n' + errors.map(x => '• ' + x).join('\n') : '';
+    const failureText = 'Нет доступа к источникам информации или ни один источник не вернул данные для выбранного периода.' + suffix;
     setSourceProgress(false);
-    setStatus($('loadStatus'), 'Нет доступа к источникам информации или ни один источник не вернул данные для выбранного периода.' + suffix, 'bad');
+    renderCompactStatus($('loadStatus'), failureText, 'bad', 'Ошибка');
+    // При автопереборе надпись сначала фиксирует сам факт ошибки, а затем даёт
+    // пользователю наиболее практичное действие. Подробности остаются по клику.
+    if (!manual) {
+      setTimeout(() => {
+        if (state.loadAttemptSeq !== attemptId) return;
+        if (($('loadStatus')?.dataset?.compactText || '') !== failureText) return;
+        renderCompactStatus($('loadStatus'), failureText, 'bad', 'Включите ВПН');
+      }, 1000);
+    }
     renderSourceInfo();
   }
 
@@ -4404,7 +4645,7 @@ function describeScentDurability(rows){
     if (hotSunHours) details.push(`жара + солнце ${hotSunHours} ч`);
     if (dryHours) details.push(`сухой воздух ${dryHours} ч`);
     if (drySunHours) details.push(`сухость + солнце ${drySunHours} ч`);
-    if (precipHours) details.push(`осадки ${precipHours} ч, сумма ${round(rows.reduce((a,r)=>a+(Number(r.precip)||0),0),1)} мм`);
+    if (precipHours) details.push(`осадки ${precipHours} ${state.samplingMode === 'hourly' ? 'ч' : 'интерв.'}, сумма ${round(rows.reduce((a,r)=>a+(Number.isFinite(r._precipTotal) ? r._precipTotal : (Number(r.precip)||0)),0),1)} мм`);
     if (snowHours) details.push(`${isPtp ? 'ПТП: снег/осадки при морозе' : 'ПСС: снег/осадки при морозе'} ${snowHours} ч`);
     if (heavyRainHours) details.push(`заметный дождь ${heavyRainHours} ч`);
     if (freezeHours) details.push(`мороз ниже −5°C ${freezeHours} ч`);
@@ -4521,7 +4762,7 @@ function describeScentDurability(rows){
     const tempValues = rows.map(r=>r.temp).filter(Number.isFinite);
     const avgTemp = tempValues.length ? tempValues.reduce((a,b)=>a+b,0) / tempValues.length : null;
     const precipValues = rows.map(r=>r.precip).filter(Number.isFinite);
-    const precipTotal = precipValues.reduce((a,b)=>a+b,0);
+    const precipTotal = rows.reduce((a,r)=>a+(Number.isFinite(r._precipTotal) ? r._precipTotal : (Number(r.precip) || 0)),0);
     const precipHours = rows.filter(r=>(r.precip||0) > 0).length;
     let directionSwitches = 0, prevSector = null;
     for (const r of rows) {
@@ -4790,7 +5031,8 @@ function buildTimeFocusTicks(){
       if (badge) badge.innerHTML = 'Весь период<span>перетащите ярлык по кругу</span>';
       const periodStart = $('startTime')?.value ? formatFocusTime($('startTime').value) : '—';
       const periodEnd = $('endTime')?.value ? formatFocusTime($('endTime').value) : '—';
-      info.innerHTML = `<b>Показан весь выбранный период:</b> ${escapeHtml(periodStart)} — ${escapeHtml(periodEnd)} · в расчёте ${state.rows?.length || 0} ч. Соседние часы быстро теряют влияние.`;
+      const overviewUnit = state.samplingMode === 'hourly' ? 'ч' : 'точек';
+      info.innerHTML = `<b>Показан весь выбранный период:</b> ${escapeHtml(periodStart)} — ${escapeHtml(periodEnd)} · в расчёте ${state.rows?.length || 0} ${overviewUnit}; ${escapeHtml(state.samplingLabel || '')}. Соседние значения быстро теряют влияние.`;
       return;
     }
 
@@ -4801,8 +5043,10 @@ function buildTimeFocusTicks(){
     const icon = focusTimeIcon(row.time);
     knob.innerHTML = `<span class="sunIcon">${icon}</span><small>${escapeHtml(String(row?.time || '—').slice(11,16))}</small>`;
     const badgeContext = focusTimeBadgeContext(row.time, idx);
-    if (badge) badge.innerHTML = `Почасовой срез<span>${escapeHtml(badgeContext)} · ${escapeHtml(dateShort)}</span>`;
-    info.innerHTML = `<b>Почасовой срез:</b> ${escapeHtml(dateShort)} · в расчёте ${visibleRows} ч; будущие часы скрыты: ${futureCut}. Соседние часы быстро теряют влияние.`;
+    const focusTitle = state.samplingMode === 'hourly' ? 'Почасовой срез' : 'Срез данных';
+    const focusUnit = state.samplingMode === 'hourly' ? 'ч' : 'точек';
+    if (badge) badge.innerHTML = `${focusTitle}<span>${escapeHtml(badgeContext)} · ${escapeHtml(dateShort)}</span>`;
+    info.innerHTML = `<b>${focusTitle}:</b> ${escapeHtml(dateShort)} · в расчёте ${visibleRows} ${focusUnit}; будущие значения скрыты: ${futureCut}. Соседние значения быстро теряют влияние.`;
   }
 
   // Обрабатывает drag/pointer по кругу и выбирает ближайший почасовой индекс.
@@ -5105,6 +5349,7 @@ function buildTimeFocusTicks(){
     el.innerHTML = `
       <p><b>Источник данных:</b> ${escapeHtml(source)}.</p>
       <p><b>Тип данных:</b> ${escapeHtml(dataType)}.</p>
+      <p><b>Режим выборки:</b> ${escapeHtml(meta.sampling || state.samplingLabel || '—')}${Number.isFinite(meta.rawRowCount) ? `; источник вернул ${meta.rawRowCount} точек, в анализе ${meta.analyzedRowCount}` : ''}.</p>
       <p><b>Точка расчёта:</b> ${round(l.latitude,5)}, ${round(l.longitude,5)}${l.timezone ? ` · ${escapeHtml(l.timezone)}` : ''}.</p>
       <p><b>Метеостанция:</b> ${escapeHtml(station)}; <b>расстояние до станции:</b> ${escapeHtml(distance)}.</p>
       ${note ? `<p><b>Примечание:</b> ${escapeHtml(note)}.</p>` : ''}
@@ -5382,7 +5627,7 @@ function buildTimeFocusTicks(){
     ctx.font = '12px system-ui';
     ctx.fillStyle = roseColors().muted;
     ctx.textAlign = 'center';
-    ctx.fillText(`макс. сектор: ${state.roseMode === 'scent' ? round(maxSector,1) + ' усл.ч' : round(maxSector,1) + ' ч'}`, cssSize/2, cssSize/2+12);
+    ctx.fillText(`макс. сектор: ${round(maxSector,1)} ${samplingCountUnit(state.roseMode === 'scent')}`, cssSize/2, cssSize/2+12);
   }
 
   // Переключает таблицу между секторами и почасовой динамикой.
@@ -5401,12 +5646,13 @@ function buildTimeFocusTicks(){
     const rows = sectors.map((w,i)=>`<tr>
         <td>${i+1}</td>
         <td><b>${w.name}</b><br><span class="mini">${w.short} · центр ${round(w.center,0)}°</span></td>
-        <td>${w.count} ч</td>
+        <td>${w.count} ${samplingCountUnit(false)}</td>
         <td>${round(w.count/s.total*100,0)}%</td>
         <td>${round(w.avgSpeed,1)} м/с</td>
         <td>${w.gustMax == null ? '—' : round(w.gustMax,1)}</td>
       </tr>`);
-    $('dataPanel').innerHTML = `<table><thead><tr><th>#</th><th>Ветер: откуда</th><th>Часы</th><th>Доля</th><th>Ср. скорость</th><th>Макс. порыв</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+    const countHeader = state.samplingMode === 'hourly' ? 'Часы' : 'Точки';
+    $('dataPanel').innerHTML = `<table><thead><tr><th>#</th><th>Ветер: откуда</th><th>${countHeader}</th><th>Доля</th><th>Ср. скорость</th><th>Макс. порыв</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
   }
 
   // Рисует почасовую таблицу с подсказками по каждому столбцу.
@@ -5430,14 +5676,14 @@ function buildTimeFocusTicks(){
       </tr>`;
     });
     const headers = [
-      th('Время','Локальный час выбранной точки.'),
-      th('м/с','Средняя скорость ветра за час.'),
+      th('Время','Время выбранной точки или опорное время усреднённого интервала.'),
+      th('м/с','Средняя скорость ветра для этой точки или усреднённого интервала.'),
       th('Откуда','Направление, откуда дул ветер.'),
       th('Куда запах','Куда могло относить запах: ветер + 180°.'),
-      th('Порыв','Максимальный порыв ветра за час.'),
+      th('Порыв','Максимальный порыв для этой точки или усреднённого интервала.'),
       th('°C','Температура воздуха у поверхности.'),
       th('RH%','Относительная влажность воздуха.'),
-      th('Осадки','Сумма осадков за час, мм.'),
+      th('Осадки','Средняя интенсивность осадков в строке; для суточного режима полная сумма учитывается отдельно в отчёте.'),
       th('Солнце E','Индекс солнечной нагрузки 0–1.'),
       th('Обл.%','Облачность: доля неба в облаках.'),
       th('Вт/м²','Солнечная радиация у поверхности.')
@@ -5459,9 +5705,9 @@ function buildTimeFocusTicks(){
     const totalWindHours = Math.max(0.01, s.windSec.sectors.reduce((a,b)=>a+b.count,0));
     const totalScentHours = Math.max(0.01, s.scentSec.sectors.reduce((a,b)=>a+b.count,0));
     const topWind = [...s.windSec.sectors].filter(x=>x.count>0).sort((a,b)=>b.count-a.count || b.weighted-a.weighted).slice(0,4)
-      .map(x=>`${x.name}: ${round(x.count,1)} ч (${round(x.count/totalWindHours*100,0)}%), ср. ${round(x.avgSpeed,1)} м/с`).join('; ') || 'нет данных';
+      .map(x=>`${x.name}: ${round(x.count,1)} ${samplingCountUnit(false)} (${round(x.count/totalWindHours*100,0)}%), ср. ${round(x.avgSpeed,1)} м/с`).join('; ') || 'нет данных';
     const topScent = [...s.scentSec.sectors].filter(x=>x.count>0).sort((a,b)=>b.count-a.count || b.weighted-a.weighted).slice(0,4)
-      .map(x=>`${x.name}: ${round(x.count,1)} усл.ч (${round(x.count/totalScentHours*100,0)}%), ср. ${round(x.avgSpeed,1)} м/с`).join('; ') || 'нет данных';
+      .map(x=>`${x.name}: ${round(x.count,1)} ${samplingCountUnit(true)} (${round(x.count/totalScentHours*100,0)}%), ср. ${round(x.avgSpeed,1)} м/с`).join('; ') || 'нет данных';
 
     const meta = state.lastSourceMeta || {};
     const source = meta.sourceName || state.lastSourceLabel || '—';
@@ -5516,8 +5762,9 @@ function buildTimeFocusTicks(){
       'Ограничение: это полевая эвристика. Прямой солнечный свет на открытой дороге, тень в лесу, влажная подстилка, низина, колея, снег или закрытый объём могут дать разные результаты при одинаковой погодной строке.',
       '',
       '7. Техническая справка',
-      `Проанализировано почасовых точек: ${s.total}; секторов розы: ${s.bins}; порог отсечения слабого ветра: ${s.minSpeed} м/с.`,
+      `Проанализировано погодных точек: ${s.total}; детализация: ${state.samplingLabel || '—'}; секторов розы: ${s.bins}; порог отсечения слабого ветра: ${s.minSpeed} м/с.`,
       `Тип данных: ${meta.dataType || '—'}.`,
+      `Режим выборки: ${state.samplingLabel || '—'}; источник вернул ${state.rawRowCount || s.total} точек, в анализе ${s.total}.`,
       `Проверка источников: ${tried}.`,
       'Ограничение: это штабная подсказка. Погодные данные обычно отражают ветер на высоте около 10 м, а движение запаха у земли может отличаться в лесу, овраге, у воды, на просеке, в застройке, высокой траве или под снегом. Рабочее решение сверяется с рельефом, фактическим ветром и поведением собаки.'
     ].join('\n');
@@ -5750,6 +5997,8 @@ function buildTimeFocusTicks(){
       const val = localStorage.getItem(KEY_STORAGE[field] || field);
       if (val && $(field)) $(field).value = val;
     }
+    const samplingToggle = $('disableLongPeriodSampling');
+    if (samplingToggle) samplingToggle.checked = localStorage.getItem(LONG_PERIOD_SAMPLING_STORAGE) === '1';
     refreshSourceOptions();
   }
 
@@ -5770,8 +6019,10 @@ function buildTimeFocusTicks(){
       if (!el) continue;
       localStorage.setItem(KEY_STORAGE[field] || field, el.value || '');
     }
+    const samplingToggle = $('disableLongPeriodSampling');
+    if (samplingToggle) localStorage.setItem(LONG_PERIOD_SAMPLING_STORAGE, samplingToggle.checked ? '1' : '0');
     refreshSourceOptions();
-    setStatus($('loadStatus'), 'Ключи источников сохранены в браузере.', 'good');
+    setStatus($('loadStatus'), 'Ключи и настройки источников сохранены в браузере.', 'good');
     closeSourceSettings();
   }
 
@@ -5870,6 +6121,13 @@ function buildTimeFocusTicks(){
       $(field)?.addEventListener('input', () => autosaveSourceKey(field));
       $(field)?.addEventListener('change', () => autosaveSourceKey(field));
     }
+    $('disableLongPeriodSampling')?.addEventListener('change', e => {
+      const disabled = Boolean(e.target.checked);
+      localStorage.setItem(LONG_PERIOD_SAMPLING_STORAGE, disabled ? '1' : '0');
+      showToast(disabled
+        ? 'Ужатие длинных периодов отключено: будут использоваться все погодные точки.'
+        : 'Ужатие длинных периодов включено: после 7 дней — шаг 6 часов, после 30 дней — суточные средние.', disabled ? 'warn' : 'good', 5000);
+    });
   }
 
 
@@ -5894,6 +6152,13 @@ function buildTimeFocusTicks(){
   $('placeInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') runPlaceFind(); });
   $('coordInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') runPlaceFind(); });
   $('presetSelect').addEventListener('change', applyPreset);
+  const markPeriodAsCustom = () => {
+    if ($('presetSelect')) $('presetSelect').value = 'custom';
+  };
+  $('startTime')?.addEventListener('input', markPeriodAsCustom);
+  $('startTime')?.addEventListener('change', markPeriodAsCustom);
+  $('endTime')?.addEventListener('input', markPeriodAsCustom);
+  $('endTime')?.addEventListener('change', markPeriodAsCustom);
   $('binCount').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
   $('minSpeed').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
 

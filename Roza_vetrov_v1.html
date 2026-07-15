@@ -2237,7 +2237,9 @@
     samplingMode: 'hourly',
     samplingLabel: 'почасовые данные без прореживания',
     rawRowCount: 0,
-    loadAttemptSeq: 0
+    loadAttemptSeq: 0,
+    nearestPlaceName: '',
+    nearestPlaceKey: ''
   };
 
 
@@ -5798,37 +5800,166 @@ function buildTimeFocusTicks(){
     }
   }
 
-  // Готовит подпись для PNG-экспорта розы.
-  function pngCaptionLines(){
+  // Форматирует дату и время для подписи PNG: 02.03.2026 10:00.
+  function formatCompactDateTime(value){
+    if (!value) return '—';
+    const s = String(value).replace('T',' ');
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (m) return `${m[3]}.${m[2]}.${m[1]} ${m[4]}:${m[5]}`;
+    const d = new Date(value);
+    if (!isNaN(d)) {
+      const pad = n => String(n).padStart(2,'0');
+      return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    return s.slice(0,16);
+  }
+
+  // Считает длительность выбранного периода в часах.
+  function periodElapsedHours(){
+    const start = $('startTime')?.value || '';
+    const end = $('endTime')?.value || '';
+    const a = new Date(start);
+    const b = new Date(end);
+    if (isNaN(a) || isNaN(b)) return state.rows?.length || 0;
+    return Math.max(0, Math.round((b.getTime() - a.getTime()) / 3600000));
+  }
+
+  // Форматирует полный период для PNG.
+  function formatPeriodRangeForReport(){
+    const start = $('startTime')?.value ? formatCompactDateTime($('startTime').value) : '—';
+    const end = $('endTime')?.value ? formatCompactDateTime($('endTime').value) : '—';
+    return `${start} - ${end} (${periodElapsedHours()} ч)`;
+  }
+
+  // Возвращает координаты и ближайший населённый пункт.
+  function formatLocationForReport(){
     const l = state.location || {};
+    const lat = Number(l.latitude);
+    const lon = Number(l.longitude);
+    const coords = Number.isFinite(lat) && Number.isFinite(lon)
+      ? `${round(lat,5)}, ${round(lon,5)}`
+      : 'координаты не определены';
+    const place = state.nearestPlaceName || l.nearestPlaceName || l.name || '';
+    return place ? `${coords} (${place})` : coords;
+  }
+
+  // Выбирает название населённого пункта из ответа обратного геокодера.
+  function settlementNameFromReverse(data){
+    const a = data?.address || {};
+    return a.city || a.town || a.municipality || a.village || a.hamlet || a.suburb || a.county || a.state || data?.name || '';
+  }
+
+  // По возможности уточняет ближайший населённый пункт перед экспортом PNG.
+  async function updateNearestPlaceName(){
+    const l = state.location || {};
+    const lat = Number(l.latitude);
+    const lon = Number(l.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '';
+    const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+    if (state.nearestPlaceKey === key) return state.nearestPlaceName || '';
+    state.nearestPlaceKey = key;
+    state.nearestPlaceName = '';
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 3500);
+      const url = 'https://nominatim.openstreetmap.org/reverse?' + new URLSearchParams({
+        format:'jsonv2',
+        lat:String(lat),
+        lon:String(lon),
+        zoom:'10',
+        addressdetails:'1',
+        'accept-language':'ru'
+      }).toString();
+      const res = await fetch(url, {signal:controller.signal});
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const name = settlementNameFromReverse(data);
+      state.nearestPlaceName = name || '';
+      if (state.location) state.location.nearestPlaceName = state.nearestPlaceName;
+      return state.nearestPlaceName;
+    } catch(_) {
+      return '';
+    }
+  }
+
+  // Возвращает индексы скоростных диапазонов, реально присутствующих на текущей розе.
+  function usedSpeedClassIndexesForExport(){
+    const s = state.stats;
+    const used = new Set();
+    if (!s) return [];
+    const scan = sec => {
+      (sec?.sectors || []).forEach(sector => {
+        (sector.classes || []).forEach((v,i) => {
+          if (Number(v) > 0) used.add(i);
+        });
+      });
+    };
+    const mode = state.roseMode || 'both';
+    if (mode === 'wind' || mode === 'both') scan(s.windSec);
+    if (mode === 'scent' || mode === 'both') scan(s.scentSec);
+    return [...used].sort((a,b)=>a-b);
+  }
+
+  // Формирует легенду только из диапазонов скорости, которые есть на графике.
+  function pngSpeedLegendItems(){
+    const mode = state.roseMode || 'both';
+    const palette = mode === 'scent' ? currentScentClasses() : currentSpeedClasses();
+    return usedSpeedClassIndexesForExport().map(i => ({
+      color: palette[i]?.color || SPEED_CLASSES[i]?.color || '#607888',
+      text: `${SPEED_CLASSES[i]?.name || ''} м/с · ${SPEED_CLASSES[i]?.label || ''}`.trim()
+    }));
+  }
+
+  // Готовит нижние служебные строки PNG.
+  function pngCaptionLines(){
     const s = state.stats;
     if (!s) return [];
-    const windMean = s.windVec.mean == null ? '—' : `${dirName(s.windVec.mean,s.bins)} ${round(s.windVec.mean,0)}°`;
-    const scentMean = s.scentVec.mean == null ? '—' : `${dirName(s.scentVec.mean,s.bins)} ${round(s.scentVec.mean,0)}°`;
     const source = state.lastSourceMeta?.sourceName || state.lastSourceLabel || '—';
+    const task = taskModeLabel(s.scentDurability?.taskMode || scentTaskMode());
     const focus = currentFocusRow();
-    const focusLine = focus ? ` · срез: ${formatFocusTime(focus.time)}` : '';
+    const focusLine = focus ? ` · срез: ${formatCompactDateTime(focus.time)}` : '';
     return [
-      `Точка: ${l.name || 'точка'} · координаты ${round(l.latitude,5)}, ${round(l.longitude,5)}`,
-      `Период: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' · ' + l.timezone : ''}${focusLine}`,
-      `Ветер: ${windMean} · перенос запаха: ${scentMean} · сохранность запаха: ${s.scentDurability?.label?.text || '—'} (${round(s.scentDurability?.score,0)}/100)`,
-      `Источник: ${source}`
+      `Точка: ${formatLocationForReport()}`,
+      `Период: ${formatPeriodRangeForReport()}${focusLine}`,
+      `Источник: ${source} · тип задачи: ${task}`
     ];
   }
 
-  // Экспортирует canvas с подписью в PNG.
-  function exportCanvas(canvas, name){
+  // Экспортирует розу вместе со сводкой, легендой и служебной информацией.
+  async function exportCanvas(canvas, name){
     if (!state.stats) return setStatus($('loadStatus'), 'Сначала постройте розу.', 'warn');
+    await updateNearestPlaceName();
+
     const dpr = window.devicePixelRatio || 1;
     const lines = pngCaptionLines();
+    const speedLegend = pngSpeedLegendItems();
+    const metrics = [...($('metrics')?.querySelectorAll('.metric') || [])].slice(0,6).map(card => ({
+      label: (card.querySelector('.metricLabel')?.textContent || '').trim(),
+      value: (card.querySelector('b')?.textContent || '').trim(),
+      extra: ([...card.querySelectorAll('span')].find(x => !x.classList.contains('metricLabel'))?.textContent || '').trim()
+    })).filter(x => x.label || x.value);
+
     const lineH = Math.round(20 * dpr);
     const pad = Math.round(18 * dpr);
-    const footerH = pad * 2 + lineH * lines.length;
+    const gap = Math.round(8 * dpr);
+    const cardH = Math.round(58 * dpr);
+    const cardRows = metrics.length ? Math.ceil(metrics.length / 3) : 0;
+    const cardsH = metrics.length
+      ? pad + cardRows * cardH + Math.max(0, cardRows - 1) * gap + Math.round(10 * dpr)
+      : 0;
+    const speedRows = speedLegend.length ? Math.ceil(speedLegend.length / 3) : 0;
+    const speedH = speedLegend.length
+      ? Math.round(26 * dpr) + speedRows * Math.round(22 * dpr) + Math.round(8 * dpr)
+      : 0;
+    const footerH = pad * 2 + lineH * lines.length + cardsH + speedH;
+
     const out = document.createElement('canvas');
     out.width = canvas.width;
     out.height = canvas.height + footerH;
     const ctx = out.getContext('2d');
     const colors = roseColors();
+
     ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, out.width, out.height);
     ctx.drawImage(canvas, 0, 0);
@@ -5839,13 +5970,89 @@ function buildTimeFocusTicks(){
     ctx.moveTo(0, canvas.height + 0.5);
     ctx.lineTo(out.width, canvas.height + 0.5);
     ctx.stroke();
+
+    function roundRectPath(x,y,w,h,r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr,y);
+      ctx.lineTo(x+w-rr,y);
+      ctx.quadraticCurveTo(x+w,y,x+w,y+rr);
+      ctx.lineTo(x+w,y+h-rr);
+      ctx.quadraticCurveTo(x+w,y+h,x+w-rr,y+h);
+      ctx.lineTo(x+rr,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-rr);
+      ctx.lineTo(x,y+rr);
+      ctx.quadraticCurveTo(x,y,x+rr,y);
+      ctx.closePath();
+    }
+
+    let y = canvas.height + pad;
+    if (metrics.length) {
+      const cols = 3;
+      const cardW = Math.floor((out.width - pad*2 - gap*(cols-1)) / cols);
+      metrics.forEach((m,i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = pad + col * (cardW + gap);
+        const cy = y + row * (cardH + gap);
+        roundRectPath(x, cy, cardW, cardH, Math.round(12*dpr));
+        ctx.fillStyle = '#fafdff';
+        ctx.fill();
+        ctx.strokeStyle = colors.footerLine;
+        ctx.lineWidth = Math.max(1, dpr);
+        ctx.stroke();
+        ctx.fillStyle = colors.footerText;
+        ctx.font = `${10.5 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textBaseline = 'top';
+        ctx.fillText(m.label, x + 10*dpr, cy + 8*dpr, cardW - 20*dpr);
+        ctx.font = `700 ${15 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.fillText(m.value, x + 10*dpr, cy + 25*dpr, cardW - 20*dpr);
+        if (m.extra) {
+          ctx.font = `${10.5 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
+          ctx.fillStyle = colors.muted;
+          ctx.fillText(m.extra, x + 10*dpr, cy + 43*dpr, cardW - 20*dpr);
+        }
+      });
+      y += cardsH;
+    }
+
+    if (speedLegend.length) {
+      ctx.font = `800 ${12 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
+      ctx.fillStyle = colors.footerText;
+      ctx.textBaseline = 'top';
+      ctx.fillText('Скорость ветра на графике:', pad, y);
+      y += Math.round(22 * dpr);
+      const cols = 3;
+      const itemW = Math.floor((out.width - pad*2) / cols);
+      speedLegend.forEach((item,i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = pad + col * itemW;
+        const ly = y + row * Math.round(22 * dpr);
+        ctx.fillStyle = item.color;
+        roundRectPath(x, ly + 3*dpr, 13*dpr, 13*dpr, 3*dpr);
+        ctx.fill();
+        ctx.strokeStyle = colors.footerLine;
+        ctx.lineWidth = Math.max(1, dpr);
+        ctx.stroke();
+        ctx.font = `${11 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.fillStyle = colors.footerText;
+        ctx.fillText(item.text, x + 19*dpr, ly, itemW - 22*dpr);
+      });
+      y += speedRows * Math.round(22 * dpr) + Math.round(8 * dpr);
+    }
+
     ctx.font = `${13 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
     ctx.fillStyle = colors.footerText;
     ctx.textBaseline = 'top';
     lines.forEach((line, i) => {
-      ctx.fillText(line, pad, canvas.height + pad + i * lineH);
+      ctx.fillText(line, pad, y + i * lineH, out.width - pad*2);
     });
-    out.toBlob(blob => downloadBlob(blob, name, 'image/png'));
+
+    out.toBlob(blob => {
+      if (!blob) return setStatus($('loadStatus'), 'Не удалось сформировать PNG.', 'bad');
+      downloadBlob(blob, name, 'image/png');
+    }, 'image/png');
   }
 
   // Универсально скачивает Blob как файл.
@@ -6193,8 +6400,8 @@ function buildTimeFocusTicks(){
   $('loadWeatherBtn').addEventListener('click', () => loadWeather().catch(e => { setSourceProgress(false); setStatus($('loadStatus'), 'Ошибка: ' + e.message, 'bad'); }));
   $('exportCsvBtn').addEventListener('click', exportCsv);
   $('copyReportBtn').addEventListener('click', copyReport);
-  $('exportRosePngBtn').addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png'));
-  $('exportRosePngSimpleBtn')?.addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png'));
+  $('exportRosePngBtn').addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png').catch(e => setStatus($('loadStatus'), 'Ошибка PNG: ' + e.message, 'bad')));
+  $('exportRosePngSimpleBtn')?.addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png').catch(e => setStatus($('loadStatus'), 'Ошибка PNG: ' + e.message, 'bad')));
   document.querySelectorAll('#roseModeSwitch button').forEach(btn => btn.addEventListener('click', () => {
     state.roseMode = btn.dataset.roseMode || 'wind';
     setSwitchActive('roseModeSwitch', 'data-rose-mode', state.roseMode);

@@ -219,6 +219,62 @@
     .toolButton.disabled:hover{
       box-shadow:0 0 0 3px rgba(126,164,186,.10),0 0 20px rgba(79,131,160,.14),0 13px 28px rgba(7,25,35,.09);
     }
+    .toolButton.newTool{
+      border-color:#4b92e6;
+      background:linear-gradient(135deg,#ffffff 0%,#e3f3ff 58%,#d9ecff 100%);
+      box-shadow:0 0 0 4px rgba(50,137,239,.14),0 0 68px 20px rgba(65,153,255,.25),0 18px 42px rgba(25,103,210,.21);
+      animation:newToolAura 3s ease-in-out infinite;
+    }
+    .toolButton.newTool::before{
+      content:"";
+      position:absolute;
+      z-index:1;
+      top:-45%;
+      bottom:-45%;
+      left:-42%;
+      width:42%;
+      pointer-events:none;
+      background:linear-gradient(90deg,transparent 0%,rgba(51,143,255,.18) 18%,rgba(209,239,255,.78) 38%,#fff 50%,rgba(151,213,255,.86) 62%,rgba(51,143,255,.20) 82%,transparent 100%);
+      box-shadow:0 0 28px 12px rgba(190,231,255,.62);
+      filter:blur(2px);
+      transform:skewX(-18deg) translateX(-240%);
+      animation:newToolReflector 2.1s ease-in-out infinite;
+    }
+    .toolButton.newTool::after{
+      content:"новое";
+      position:absolute;
+      right:16px;
+      top:16px;
+      padding:7px 12px;
+      border-radius:999px;
+      background:#1467c8;
+      color:#fff;
+      box-shadow:0 0 18px rgba(49,145,255,.48);
+      font-size:11px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      z-index:2;
+    }
+    .toolButton.newTool:hover{
+      border-color:#1d70d1;
+      box-shadow:0 0 0 5px rgba(50,137,239,.18),0 0 204px 60px rgba(65,153,255,.30),0 22px 46px rgba(25,103,210,.26);
+      animation-play-state:paused;
+    }
+    @keyframes newToolAura{
+      0%,100%{box-shadow:0 0 0 4px rgba(50,137,239,.14),0 0 68px 20px rgba(65,153,255,.22),0 18px 42px rgba(25,103,210,.21)}
+      50%{box-shadow:0 0 0 5px rgba(50,137,239,.18),0 0 204px 60px rgba(65,153,255,.30),0 20px 46px rgba(25,103,210,.25)}
+    }
+    @keyframes newToolReflector{
+      0%,12%{transform:skewX(-18deg) translateX(-240%);opacity:0}
+      18%{opacity:1}
+      48%{transform:skewX(-18deg) translateX(650%);opacity:1}
+      56%,100%{transform:skewX(-18deg) translateX(650%);opacity:0}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .toolButton.newTool{animation:none}
+      .toolButton.newTool::before{display:none}
+    }
 
     @media(max-width:560px){
       .heroBadges{
@@ -246,6 +302,13 @@
       }
       .toolButton.disabled{
         box-shadow:0 0 0 2px rgba(126,164,186,.12),0 0 14px rgba(79,131,160,.17),0 7px 16px rgba(7,25,35,.10);
+      }
+      .toolButton.newTool::after{
+        top:8px;
+        right:8px;
+        padding:4px 7px;
+        font-size:8px;
+        letter-spacing:.02em;
       }
     }
 
@@ -305,15 +368,15 @@
           <strong>Роза ветров</strong>
           <span>Ветер, перенос запаха, стабильность шлейфа, ПСС/ПТП, погодные риски и экспорт отчёта.</span>
         </a>
-        <div class="toolButton disabled" data-status="в разработке" aria-disabled="true" role="button" tabindex="-1">
+        <a class="toolButton newTool" href="https://podkit.github.io/psr/generator_setki_v1.html">
           <span class="mark">ГС</span>
           <strong>Генератор сетки</strong>
           <span>Поисковая сетка, разметка карты, GPX, PNG/JPG/PDF, JSON‑проекты и офлайн‑карты MBTiles.</span>
-        </div>
+        </a>
         <div class="toolButton disabled" data-status="скоро" aria-disabled="true" role="button" tabindex="-1">
           <span class="mark">ПП</span>
           <strong>Помощник Поисковика</strong>
-          <span>Будущий общий рабочий инструмент. Раздел пока не ведёт на отдельную страницу.</span>
+          <span>Целый комбайн для ведения поисков: назначение задач, расчёт тактики, проверка треков и многое другое.</span>
         </div>
       </div>
     </section>
@@ -329,5 +392,7 @@
       <span class="footerLinks"><a href="https://github.com/podKiT/psr" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://t.me/Pod_whale" target="_blank" rel="noopener noreferrer">Telegram автора</a></span>
     </footer>
   </main>
+  <script data-goatcounter="https://podkit.goatcounter.com/count"
+          async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>

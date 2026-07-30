@@ -364,7 +364,7 @@
           <p><b>Угол</b> поворачивает сетку. 0° — север выбранного типа. Колесо мыши над полем угла меняет значение быстрее, чем ручной ввод. На мобильном экране знак вопроса открывает пояснение по тапу; повторный тап, прокрутка панели или четыре секунды бездействия закрывают его.</p>
           <p><b>Истинный север</b> — географический север. <b>Магнитный север</b> добавляет магнитное склонение по центру выбранной области, если оно доступно.</p>
           <p><b>Сдвиг X/Y</b> двигает сетку в метрах без изменения её угла и размера. На мобильном экране рядом с каждым полем есть кнопки −10 и +10 метров. Это удобно, если надо совместить номера квадратов с уже принятой схемой.</p>
-          <p><b>Нумерация</b> может идти по квадратам или по вершинам. Форматы подходят для разных привычек штабов: простые числа, A1/B1, 01-01, кириллица.</p>
+          <p><b>Нумерация</b> может идти по квадратам или по вершинам. В обоих режимах столбцы идут слева направо, строки — сверху вниз: A1 находится в левом верхнем углу, A2 — под ним, B1 — справа от A1. Форматы подходят для разных привычек штабов: простые числа, A1/B1, 01-01, кириллица.</p>
         </section>
 
         <section class="helpPanel">
@@ -1077,7 +1077,7 @@
     function roundedKey(n){return Number(n).toFixed(6)}
     
     /** Назначает подписи вершинам сетки и связывает их с ячейками. */
-    function assignVertexLabels(vertexMap){assignCellLabels();const pts=[...vertexMap.values()];const cols=[...new Set(pts.map(p=>roundedKey(p.u)))].sort((a,b)=>Number(a)-Number(b));const rows=[...new Set(pts.map(p=>roundedKey(p.v)))].sort((a,b)=>Number(a)-Number(b));const colIndex=new Map(cols.map((v,i)=>[v,i]));const rowIndex=new Map(rows.map((v,i)=>[v,i]));for(const p of pts){p.uKey=roundedKey(p.u);p.vKey=roundedKey(p.v);p.col=colIndex.get(p.uKey)||0;p.row=rowIndex.get(p.vKey)||0;p.seq=gridStartNumber()+p.row*cols.length+p.col;p.label=makeLabel(p.seq,p.row+1,p.col+1)}state.vertexPoints=pts.sort((a,b)=>a.seq-b.seq);for(const cell of state.currentCells){cell.vertexLabels=cell.vertexKeys.map(k=>(vertexMap.get(k)||{}).label||'')}}
+    function assignVertexLabels(vertexMap){assignCellLabels();const pts=[...vertexMap.values()];const cols=[...new Set(pts.map(p=>roundedKey(p.u)))].sort((a,b)=>Number(a)-Number(b));const rows=[...new Set(pts.map(p=>roundedKey(p.v)))].sort((a,b)=>Number(b)-Number(a));const colIndex=new Map(cols.map((v,i)=>[v,i]));const rowIndex=new Map(rows.map((v,i)=>[v,i]));for(const p of pts){p.uKey=roundedKey(p.u);p.vKey=roundedKey(p.v);p.col=colIndex.get(p.uKey)||0;p.row=rowIndex.get(p.vKey)||0;p.seq=gridStartNumber()+p.row*cols.length+p.col;p.label=makeLabel(p.seq,p.row+1,p.col+1)}state.vertexPoints=pts.sort((a,b)=>a.seq-b.seq);for(const cell of state.currentCells){cell.vertexLabels=cell.vertexKeys.map(k=>(vertexMap.get(k)||{}).label||'')}}
     
     /** Строит последовательность точек GPX-трека по сетке. */
     function makeGridTrackPoints(cells){if(!cells.length)return[];const pts=[];const vp=state.vertexPoints||[];if(vp.length){const cols=[...new Set(vp.map(p=>p.uKey))].sort((a,b)=>Number(a)-Number(b));const rows=[...new Set(vp.map(p=>p.vKey))].sort((a,b)=>Number(a)-Number(b));const byKey=new Map(vp.map(p=>[p.uKey+':'+p.vKey,p]));

@@ -341,6 +341,7 @@
         <section class="helpPanel">
           <h3>Карта и подложки</h3>
           <p><b>Подложка карты</b> — это основная карта под сеткой и разметкой. Есть городские карты, рельеф, спутник, засветка, пользовательский URL и MBTiles.</p>
+          <p><b>Индикатор доступности</b> рядом с названием проверяется по одному контрольному тайлу: 🟢 — источник отвечает, 🔴 — сейчас не отвечает или требует отдельного ключа, ⚪ — проверка ещё идёт. Красные источники автоматически опускаются вниз своей категории; CARTO всегда находятся в конце раздела «Городские». Цвет отражает доступность из вашей сети в момент проверки и не гарантирует наличие подробных тайлов во всех районах. Результат обновляется при открытии списка, но не чаще одного раза в 30 минут.</p>
           <p><b>Вторая подложка</b> накладывается поверх первой с регулируемой прозрачностью. Это удобно, когда нужно совместить спутник с дорогами, рельефом или НСПД.</p>
           <p><b>НСПД</b> может зависеть от региона, масштаба, доступности сервиса и VPN. Если слой пустой, попробуйте рекомендуемый масштаб из подсказки или другую подложку.</p>
           <p><b>MBTiles</b> читается прямо из выбранного файла. После перезапуска браузер попросит выбрать файл снова — это ограничение безопасности локальных файлов.</p>
@@ -466,6 +467,13 @@
       esriPhysical:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Physical Map',maxZoom:8,maxNativeZoom:8,subdomains:''},
       nasaNight:{kind:'xyz',url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/2012-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg',attr:'NASA GIBS — VIIRS City Lights 2012',maxZoom:8,maxNativeZoom:8,subdomains:''},
       opentopomapBW:{kind:'xyz',url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',attr:'OpenTopoMap monochrome via CSS',maxZoom:19,maxNativeZoom:17,subdomains:'abc',filter:'grayscale(100%) contrast(115%)'},
+      osmDe:{kind:'xyz',url:'https://tile.openstreetmap.de/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors · openstreetmap.de',maxZoom:19,maxNativeZoom:19,subdomains:'',probeZoom:12},
+      cyclosmLite:{kind:'xyz',url:'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors · CyclOSM Lite',maxZoom:20,maxNativeZoom:20,subdomains:'abc',probeZoom:12},
+      opnv:{kind:'xyz',url:'https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors · ÖPNVKarte',maxZoom:18,maxNativeZoom:18,subdomains:'',probeZoom:12},
+      esriStreet:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Street Map',maxZoom:19,maxNativeZoom:19,subdomains:'',probeZoom:12},
+      esriNatGeo:{kind:'xyz',url:'https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — National Geographic',maxZoom:16,maxNativeZoom:16,subdomains:'',probeZoom:10},
+      esriTerrain:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Terrain Base',maxZoom:13,maxNativeZoom:13,subdomains:'',probeZoom:10},
+      esriOcean:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Ocean Base',maxZoom:16,maxNativeZoom:16,subdomains:'',probeZoom:8},
       custom:{kind:'xyz',url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors',maxZoom:19,maxNativeZoom:19,subdomains:''},
       mbtiles:{kind:'mbtiles',attr:'Локальная MBTiles-карта',maxZoom:22,maxNativeZoom:22,subdomains:''}
     };
@@ -474,11 +482,15 @@
       nspdEeko38:{kind:'warn',text:'НСПД ЕЭКО вектор z15-17. При выборе инструмент переходит на z15 в область, где слой удобно проверить. Доступность зависит от НСПД.'},
       nspdOrtho:{kind:'warn',text:'НСПД ЕЭКО ортофото 39 · ориентир z15–18. При выборе инструмент переходит на z15 в область проверки. Качество и наличие детальных тайлов зависят от региона и доступности НСПД.'},
       nasaNight:{kind:'warn',text:'NASA VIIRS City Lights · до z8. Слой засветки, не навигационная карта.'},
-      esriPhysical:{kind:'warn',text:'Esri World Physical · до z8. Обзорный физико-географический слой, не подходит для детальной работы.'}
+      esriPhysical:{kind:'warn',text:'Esri World Physical · до z8. Обзорный физико-географический слой, не подходит для детальной работы.'},
+      carto:{kind:'warn',text:'CARTO переводит базовые карты на доступ по API-ключу. Старый публичный адрес сохранён и проверяется по фактической загрузке, но в будущем может перестать отвечать.'},
+      cartoVoyager:{kind:'warn',text:'CARTO переводит базовые карты на доступ по API-ключу. Старый публичный адрес сохранён и проверяется по фактической загрузке, но в будущем может перестать отвечать.'},
+      cartoDark:{kind:'warn',text:'CARTO переводит базовые карты на доступ по API-ключу. Старый публичный адрес сохранён и проверяется по фактической загрузке, но в будущем может перестать отвечать.'},
+      esriOcean:{kind:'warn',text:'Esri Ocean — обзорная морская подложка. На суше содержит мало деталей.'}
     };
 
     // Центральное состояние приложения: карта, сетки, разметка, экспорт, погода и временные операции.
-    const state={center:{lat:55.026503,lon:82.921463},zoom:13,sourceKey:'osm',tileErrors:0,tileLoaded:0,tileLoading:0,selectedBounds:null,selectionAngle:0,gridAnchor:null,gridVisible:false,currentCells:[],vertexPoints:[],activeGridTopEdge:null,lastGpx:'',lastCentersGpx:'',lastBuiltGrid:null,frozenGrid:false,savedGrids:[],gridId:1,selectedSavedGridId:null,activeGridEditId:null,activeGridName:'',activeGridPlace:'',gridNameRequestKey:'',gridNameTimer:null,gridPlaceCache:new Map(),rebuildTimer:null,drawMode:false,isPanning:false,autoDeclinationDeg:0,declinationSource:'NOAA/WMM не запрошен',declinationTimer:null,weatherTimer:null,weatherPopupTimer:null,lastWeatherKey:'',annotationMode:'none',annotations:[],draftAnnotation:null,measurePreviewPoint:null,drawId:1,selectedAnnotationId:null,lastDrawClick:null,drawSize:'m',exportJobs:{},coordMarker:null,projectSaveTimer:null,autosaveDbErrorLogged:false,autosaveLocalErrorLogged:false,touchGesture:null,mobileTipTimer:null,drawSizePopupTimer:null,mobileDeleteSelector:null,gridLimitPending:null,mbtiles:null,mbtileUrlCache:new Map(),secondLayerEnabled:false,secondSourceKey:'none',secondOpacity:.45};
+    const state={center:{lat:55.026503,lon:82.921463},zoom:13,sourceKey:'osm',tileErrors:0,tileLoaded:0,tileLoading:0,mapSourceStatus:{},mapSourceProbeAt:0,mapSourceProbePromise:null,mapSourceSortTimer:null,selectedBounds:null,selectionAngle:0,gridAnchor:null,gridVisible:false,currentCells:[],vertexPoints:[],activeGridTopEdge:null,lastGpx:'',lastCentersGpx:'',lastBuiltGrid:null,frozenGrid:false,savedGrids:[],gridId:1,selectedSavedGridId:null,activeGridEditId:null,activeGridName:'',activeGridPlace:'',gridNameRequestKey:'',gridNameTimer:null,gridPlaceCache:new Map(),rebuildTimer:null,drawMode:false,isPanning:false,autoDeclinationDeg:0,declinationSource:'NOAA/WMM не запрошен',declinationTimer:null,weatherTimer:null,weatherPopupTimer:null,lastWeatherKey:'',annotationMode:'none',annotations:[],draftAnnotation:null,measurePreviewPoint:null,drawId:1,selectedAnnotationId:null,lastDrawClick:null,drawSize:'m',exportJobs:{},coordMarker:null,projectSaveTimer:null,autosaveDbErrorLogged:false,autosaveLocalErrorLogged:false,touchGesture:null,mobileTipTimer:null,drawSizePopupTimer:null,mobileDeleteSelector:null,gridLimitPending:null,mbtiles:null,mbtileUrlCache:new Map(),secondLayerEnabled:false,secondSourceKey:'none',secondOpacity:.45};
 
     
     /** Возвращает размер всей Web-Mercator карты в пикселях для заданного zoom. */
@@ -560,9 +572,124 @@
     
     /** Расставляет title-подсказки на option-элементы подложек с известными ограничениями. */
     function annotateBaseLayerOptions(){
-      const select=$('baseSelect');if(!select)return;
-      [...select.options].forEach(opt=>{const note=BASE_LAYER_NOTES[opt.value];if(note)opt.title=note.text});
+      [$('baseSelect'),$('secondBaseSelect')].filter(Boolean).forEach(select=>{
+        [...select.options].forEach(opt=>{const note=BASE_LAYER_NOTES[opt.value];if(note)opt.title=note.text});
+      });
       updateBaseLayerHint();
+    }
+
+    // Дополнительные публичные подложки. Пункты добавляются программно сразу в оба списка,
+    // чтобы основной и второй слой всегда имели одинаковый каталог.
+    const ADDITIONAL_BASE_LAYERS=[
+      {key:'osmDe',label:'OpenStreetMap DE',before:'— Рельеф —'},
+      {key:'esriStreet',label:'Esri World Street Map',before:'— Рельеф —'},
+      {key:'cyclosmLite',label:'CyclOSM Lite',before:'— Рельеф —'},
+      {key:'opnv',label:'ÖPNVKarte (транспорт)',before:'— Рельеф —'},
+      {key:'esriNatGeo',label:'Esri National Geographic',before:'— Спутник —'},
+      {key:'esriTerrain',label:'Esri World Terrain',before:'— Спутник —'},
+      {key:'esriOcean',label:'Esri World Ocean',before:'— Спутник —'}
+    ];
+
+    /** Добавляет новые подложки в основной и дополнительный выпадающие списки. */
+    function installAdditionalBaseLayers(){
+      [$('baseSelect'),$('secondBaseSelect')].filter(Boolean).forEach(select=>{
+        ADDITIONAL_BASE_LAYERS.forEach(item=>{
+          if(select.querySelector(`option[value="${item.key}"]`))return;
+          const opt=document.createElement('option');opt.value=item.key;opt.textContent=item.label;
+          const anchor=[...select.options].find(candidate=>candidate.disabled&&candidate.textContent.trim()===item.before);
+          if(anchor)select.insertBefore(opt,anchor);else select.appendChild(opt);
+        });
+      });
+    }
+
+    /** Запоминает исходный порядок пунктов и категорию каждого источника. */
+    function initializeMapSourceOrdering(){
+      [$('baseSelect'),$('secondBaseSelect')].filter(Boolean).forEach(select=>{
+        let category=-1,order=0;
+        [...select.options].forEach(opt=>{
+          if(opt.disabled){category++;return}
+          if(!opt.value||opt.value==='none')return;
+          opt.dataset.baseCategory=String(category);
+          opt.dataset.baseOrder=String(order++);
+        });
+      });
+    }
+
+    /** Перемещает недоступные источники вниз только внутри их исходной категории. */
+    function reorderBaseLayerOptions(){
+      [$('baseSelect'),$('secondBaseSelect')].filter(Boolean).forEach(select=>{
+        const snapshot=[...select.options],groups=snapshot.filter(opt=>opt.disabled);
+        groups.forEach((group,index)=>{
+          const nextGroup=groups[index+1]||null;
+          const members=snapshot.filter(opt=>!opt.disabled&&opt.value&&opt.value!=='none'&&opt.dataset.baseCategory===String(index));
+          members.sort((a,b)=>{
+            const rank=opt=>['carto','cartoVoyager','cartoDark'].includes(opt.value)?2:(state.mapSourceStatus[opt.value]?.status==='down'?1:0);
+            return rank(a)-rank(b)||(Number(a.dataset.baseOrder)||0)-(Number(b.dataset.baseOrder)||0);
+          });
+          members.forEach(opt=>select.insertBefore(opt,nextGroup));
+        });
+      });
+    }
+
+    /** Объединяет частые обновления статусов в одну перестановку пунктов списка. */
+    function scheduleBaseLayerReorder(){
+      clearTimeout(state.mapSourceSortTimer);
+      state.mapSourceSortTimer=setTimeout(reorderBaseLayerOptions,60);
+    }
+
+    const MAP_SOURCE_ICONS={checking:'⚪',up:'🟢',down:'🔴'};
+    /** Обновляет цветной индикатор одного источника в обоих списках подложек. */
+    function setMapSourceStatus(key,status,reason=''){
+      state.mapSourceStatus[key]={status,reason,checkedAt:Date.now()};
+      [$('baseSelect'),$('secondBaseSelect')].filter(Boolean).forEach(select=>{
+        const opt=select.querySelector(`option[value="${key}"]`);if(!opt)return;
+        if(!opt.dataset.baseLabel)opt.dataset.baseLabel=opt.textContent.replace(/^[⚪🟢🔴]\s*/u,'').trim();
+        opt.textContent=`${MAP_SOURCE_ICONS[status]||MAP_SOURCE_ICONS.checking} ${opt.dataset.baseLabel}`;
+        const note=BASE_LAYER_NOTES[key]?.text||'';
+        const statusText=status==='up'?'Доступна: контрольный тайл загрузился':status==='down'?'Недоступна сейчас':'Проверяется';
+        const details=[statusText];if(reason&&!statusText.toLocaleLowerCase('ru-RU').includes(reason.toLocaleLowerCase('ru-RU')))details.push(reason);if(note)details.push(note);
+        opt.title=details.join('. ');
+      });
+      scheduleBaseLayerReorder();
+    }
+
+    /** Возвращает фактическую конфигурацию источника для фоновой проверки. */
+    function mapSourceForProbe(key){
+      if(key==='custom')return{...sources.custom,url:$('customUrl').value.trim(),attr:$('customAttr').value.trim(),maxZoom:Number($('customMaxZoom').value)||19,maxNativeZoom:Number($('customMaxZoom').value)||19};
+      if(key==='mbtiles')return state.mbtiles?{...sources.mbtiles,mbtiles:state.mbtiles}:sources.mbtiles;
+      return sources[key]||null;
+    }
+
+    /** Проверяет источник загрузкой одного тайла в рабочем районе и масштабе. */
+    function probeMapSource(key,force=false){
+      if(key==='mbtiles'){setMapSourceStatus(key,state.mbtiles?'up':'down',state.mbtiles?'локальный файл подключён':'локальный файл ещё не выбран');return Promise.resolve(!!state.mbtiles)}
+      const previous=state.mapSourceStatus[key];
+      if(!force&&previous&&(previous.status==='up'||previous.status==='down')&&Date.now()-previous.checkedAt<30*60*1000)return Promise.resolve(previous.status==='up');
+      const src=mapSourceForProbe(key);if(!src||src.kind!=='xyz'||!src.url){setMapSourceStatus(key,'down','не задан URL источника');return Promise.resolve(false)}
+      setMapSourceStatus(key,'checking','загружается контрольный тайл');
+      const view=src.defaultView||state.center;
+      const z=Math.max(src.minZoom||1,Math.min(src.maxNativeZoom||src.maxZoom||19,src.probeZoom||12));
+      const world=llToWorld(view.lat,view.lon,z),n=Math.pow(2,z),x=((Math.floor(world.x/TILE)%n)+n)%n,y=Math.max(0,Math.min(n-1,Math.floor(world.y/TILE)));
+      return new Promise(resolve=>{
+        const img=new Image();let finished=false;
+        const done=(ok,reason)=>{if(finished)return;finished=true;clearTimeout(timer);img.onload=null;img.onerror=null;setMapSourceStatus(key,ok?'up':'down',reason);resolve(ok)};
+        const timer=setTimeout(()=>done(false,'сервер не ответил за 8 секунд'),8000);
+        img.onload=()=>done(true,'контрольный тайл загрузился');
+        img.onerror=()=>done(false,'контрольный тайл не загрузился');
+        img.referrerPolicy='strict-origin-when-cross-origin';
+        img.src=templateUrl(src.url,z,x,y,src);
+      });
+    }
+
+    /** Проверяет весь каталог небольшими параллельными группами и кэширует результат на 30 минут. */
+    function probeAllMapSources(force=false){
+      if(state.mapSourceProbePromise)return state.mapSourceProbePromise;
+      if(!force&&state.mapSourceProbeAt&&Date.now()-state.mapSourceProbeAt<30*60*1000)return Promise.resolve();
+      const keys=[...new Set([$('baseSelect'),$('secondBaseSelect')].filter(Boolean).flatMap(select=>[...select.options].filter(opt=>opt.value&&opt.value!=='none'&&!opt.disabled).map(opt=>opt.value)))];
+      let cursor=0;
+      const worker=async()=>{while(cursor<keys.length){const key=keys[cursor++];await probeMapSource(key,force)}};
+      state.mapSourceProbePromise=Promise.all(Array.from({length:Math.min(4,keys.length)},worker)).finally(()=>{state.mapSourceProbeAt=Date.now();state.mapSourceProbePromise=null});
+      return state.mapSourceProbePromise;
     }
 
     
@@ -688,12 +815,13 @@
     function renderXYZPane(src,pane,keyPrefix='layer',opacity=1,updateStatus=false){
       if(!pane)return;
       pane.style.display='block';pane.style.opacity=String(opacity);
+      const sourceStatusKey=keyPrefix.startsWith('second_')?keyPrefix.slice(7):keyPrefix;
       const minZ=src.minZoom||1,maxNative=src.maxNativeZoom||src.maxZoom||22;
       const z=Math.max(minZ,Math.min(state.zoom,maxNative));
       const scale=Math.pow(2,state.zoom-z),view=mapSize(),tl=topLeftWorld(state.zoom),tileTl={x:tl.x/scale,y:tl.y/scale},n=Math.pow(2,z);
       const minX=Math.floor(tileTl.x/TILE)-1,maxX=Math.floor((tileTl.x+view.w/scale)/TILE)+1,minY=Math.floor(tileTl.y/TILE)-1,maxY=Math.floor((tileTl.y+view.h/scale)/TILE)+1;
       const needed=new Set();let shown=0;
-      for(let tx=minX;tx<=maxX;tx++){const ux=((tx%n)+n)%n;for(let ty=minY;ty<=maxY;ty++){if(ty<0||ty>=n)continue;const key=`${keyPrefix}_${z}_${ux}_${ty}_${scale}`;needed.add(key);let img=pane.querySelector(`[data-key="${cssEscape(key)}"]`);if(!img){img=document.createElement('img');img.className='map-tile';img.dataset.key=key;img.decoding='async';img.loading='eager';img.draggable=false;if($('tileCors').checked)img.crossOrigin='anonymous';img.onload=()=>{if(updateStatus){state.tileLoaded++;state.tileLoading=Math.max(0,state.tileLoading-1);updateTileStatus(state.tileLoading?'загрузка':'готово')}};img.onerror=()=>{if(updateStatus){state.tileErrors++;state.tileLoading=Math.max(0,state.tileLoading-1);updateTileStatus('частично')}};if(updateStatus)state.tileLoading++;img.src=templateUrl(src.url,z,ux,ty,src);pane.appendChild(img)}const left=(tx*TILE-tileTl.x)*scale,top=(ty*TILE-tileTl.y)*scale;img.style.left=left+'px';img.style.top=top+'px';img.style.width=(TILE*scale)+'px';img.style.height=(TILE*scale)+'px';img.style.filter=src.filter||'';shown++}}
+      for(let tx=minX;tx<=maxX;tx++){const ux=((tx%n)+n)%n;for(let ty=minY;ty<=maxY;ty++){if(ty<0||ty>=n)continue;const key=`${keyPrefix}_${z}_${ux}_${ty}_${scale}`;needed.add(key);let img=pane.querySelector(`[data-key="${cssEscape(key)}"]`);if(!img){img=document.createElement('img');img.className='map-tile';img.dataset.key=key;img.decoding='async';img.loading='eager';img.draggable=false;if($('tileCors').checked)img.crossOrigin='anonymous';img.onload=()=>{if(sourceStatusKey&&sourceStatusKey!=='layer')setMapSourceStatus(sourceStatusKey,'up','тайлы выбранной области загружаются');if(updateStatus){state.tileLoaded++;state.tileLoading=Math.max(0,state.tileLoading-1);updateTileStatus(state.tileLoading?'загрузка':'готово')}};img.onerror=()=>{if(updateStatus){state.tileErrors++;state.tileLoading=Math.max(0,state.tileLoading-1);updateTileStatus('частично')}};if(updateStatus)state.tileLoading++;img.src=templateUrl(src.url,z,ux,ty,src);pane.appendChild(img)}const left=(tx*TILE-tileTl.x)*scale,top=(ty*TILE-tileTl.y)*scale;img.style.left=left+'px';img.style.top=top+'px';img.style.width=(TILE*scale)+'px';img.style.height=(TILE*scale)+'px';img.style.filter=src.filter||'';shown++}}
       [...pane.querySelectorAll('.map-tile')].forEach(img=>{if(!needed.has(img.dataset.key))img.remove()});if(updateStatus&&!pane.children.length)updateTileStatus('нет тайлов');return shown;
     }
     
@@ -2286,6 +2414,7 @@
           state.mbtileUrlCache.clear();
           // Patch tile reader for byte records.
           state.sourceKey='mbtiles';$('baseSelect').value='mbtiles';$('mbtilesName').value=file.name;
+          setMapSourceStatus('mbtiles','up','локальный файл подключён');
           const info=`${file.name} · ${count.toLocaleString('ru-RU')} тайлов · z${state.mbtiles.minzoom}–${state.mbtiles.maxzoom} · ${scheme.toUpperCase()} · ${format.toUpperCase()}`;
           $('mbtilesInfo').textContent=info;
           if(metadata.center){
@@ -2391,8 +2520,9 @@
       if($('gridLimitCancel'))$('gridLimitCancel').addEventListener('click',()=>{state.gridLimitPending=null;closeGridLimitDialog();toast('Большая сетка не построена','ok')});
       if($('gridLimitOverlay'))$('gridLimitOverlay').addEventListener('click',e=>{if(e.target!==e.currentTarget)return;state.gridLimitPending=null;closeGridLimitDialog()});
       $('goBtn').addEventListener('click',goToCoords);$('coordInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();goToCoords()}});$('coordInput').addEventListener('input',()=>{if(!$('coordInput').value.trim())clearCoordMarker()});$('zoomPlus').addEventListener('click',()=>zoomBy(1));$('zoomMinus').addEventListener('click',()=>zoomBy(-1));$('placeBtn').addEventListener('click',searchPlace);$('placeInput').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});let st=null;$('placeInput').addEventListener('input',()=>{if(!$('placeInput').value.trim())clearCoordMarker();clearTimeout(st);st=setTimeout(searchPlace,450)});
-      $('baseSelect').addEventListener('change',e=>{state.sourceKey=e.target.value;const moved=applySourceDefaultView(state.sourceKey);resetTileStats();renderMap();updateTopbar();savePrefs();toast(moved?'Подложка переключена, открыт рабочий масштаб слоя':'Подложка переключена','ok')});$('sourceGear').addEventListener('click',()=>{$('sourceSettings').open=!$('sourceSettings').open});$('applyCustom').addEventListener('click',()=>{$('baseSelect').value='custom';state.sourceKey='custom';savePrefs();resetTileStats();renderMap()});if($('loadMbtilesBtn'))$('loadMbtilesBtn').addEventListener('click',()=>$('mbtilesFile').click());if($('mbtilesFile'))$('mbtilesFile').addEventListener('change',e=>openMbtilesFile(e.target.files&&e.target.files[0]));['customUrl','customAttr','customMaxZoom','tileCors'].forEach(id=>$(id).addEventListener('change',()=>{savePrefs();resetTileStats();renderMap()}));
-      if($('secondBaseSelect'))$('secondBaseSelect').addEventListener('change',()=>{syncSecondLayerState();const moved=state.secondLayerEnabled&&applySourceDefaultView(state.secondSourceKey);renderMap();updateTopbar();savePrefs();if(moved)toast('Открыта область доступности второй подложки','ok')});
+      $('baseSelect').addEventListener('change',e=>{state.sourceKey=e.target.value;const moved=applySourceDefaultView(state.sourceKey);probeMapSource(state.sourceKey,true);resetTileStats();renderMap();updateTopbar();savePrefs();toast(moved?'Подложка переключена, открыт рабочий масштаб слоя':'Подложка переключена','ok')});$('sourceGear').addEventListener('click',()=>{$('sourceSettings').open=!$('sourceSettings').open});$('applyCustom').addEventListener('click',()=>{$('baseSelect').value='custom';state.sourceKey='custom';savePrefs();probeMapSource('custom',true);resetTileStats();renderMap()});if($('loadMbtilesBtn'))$('loadMbtilesBtn').addEventListener('click',()=>$('mbtilesFile').click());if($('mbtilesFile'))$('mbtilesFile').addEventListener('change',e=>openMbtilesFile(e.target.files&&e.target.files[0]));['customUrl','customAttr','customMaxZoom','tileCors'].forEach(id=>$(id).addEventListener('change',()=>{savePrefs();if(id==='customUrl'||id==='customMaxZoom')probeMapSource('custom',true);resetTileStats();renderMap()}));
+      [$('baseSelect'),$('secondBaseSelect')].filter(Boolean).forEach(select=>{select.addEventListener('pointerdown',()=>probeAllMapSources(false));select.addEventListener('focus',()=>probeAllMapSources(false))});
+      if($('secondBaseSelect'))$('secondBaseSelect').addEventListener('change',()=>{syncSecondLayerState();if(state.secondLayerEnabled)probeMapSource(state.secondSourceKey,true);const moved=state.secondLayerEnabled&&applySourceDefaultView(state.secondSourceKey);renderMap();updateTopbar();savePrefs();if(moved)toast('Открыта область доступности второй подложки','ok')});
       if($('secondOpacity')){
         $('secondOpacity').addEventListener('input',()=>{syncSecondLayerState();renderSecondLayer();savePrefs()});
         $('secondOpacity').addEventListener('wheel',e=>{e.preventDefault();const el=e.currentTarget;const cur=Number(el.value)||0;const next=Math.max(0,Math.min(100,cur+(e.deltaY<0?5:-5)));el.value=String(next);syncSecondLayerState();renderSecondLayer();savePrefs()},{passive:false});
@@ -2416,7 +2546,7 @@
       ['gridColor','gridWeight','gridLabelSize'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',()=>{if(state.gridVisible)renderGridSvg()})});
       mapEl.addEventListener('touchstart',handleMapTouchStart,{passive:false});mapEl.addEventListener('touchmove',handleMapTouchMove,{passive:false});mapEl.addEventListener('touchend',handleMapTouchEnd,{passive:false});mapEl.addEventListener('touchcancel',handleMapTouchEnd,{passive:false});mapEl.addEventListener('pointerdown',startPan);mapEl.addEventListener('wheel',e=>{e.preventDefault();const p=mouseToPoint(e);zoomBy(e.deltaY<0?1:-1,p)},{passive:false});mapEl.addEventListener('mousemove',e=>{const p=mouseToPoint(e),g=pointToGeo(p);$('cursorPos').textContent=`курсор: ${fmt(g.lat,5)}, ${fmt(g.lon,5)}`;updateMeasurePreview(p)});mapEl.addEventListener('mouseleave',clearMeasurePreview);window.addEventListener('resize',()=>{renderMap();if(state.gridVisible&&$('followViewport').checked){state.selectedBounds=getGridViewportBounds();state.selectionAngle=0;state.gridAnchor=boundsCenter(state.selectedBounds);buildGrid({silent:true})}});
     }
-    initializeCompactBaseLayer();initializeAreaStatus();mergeAreaIntoGridParameters();initializeCollapsibleSections();initializeFixedGridSizing();setupMobilePanelResizer();loadPrefs();annotateBaseLayerOptions();bindEvents();setupSmartTooltips();restoreProjectAutosave();if($('autoCell'))$('autoCell').checked=false;syncCellPresetButtons();resetTileStats();renderMap();updateTopbar();updateAutoDeclination();updateAngleUi(false);scheduleWeather();setTimeout(()=>{renderMap();updateStats();updateTileStatus(state.tileErrors?'частично':'готово')},80);
+    installAdditionalBaseLayers();initializeMapSourceOrdering();reorderBaseLayerOptions();initializeCompactBaseLayer();initializeAreaStatus();mergeAreaIntoGridParameters();initializeCollapsibleSections();initializeFixedGridSizing();setupMobilePanelResizer();loadPrefs();annotateBaseLayerOptions();bindEvents();setupSmartTooltips();restoreProjectAutosave();if($('autoCell'))$('autoCell').checked=false;syncCellPresetButtons();resetTileStats();renderMap();updateTopbar();updateAutoDeclination();updateAngleUi(false);scheduleWeather();setTimeout(()=>{renderMap();updateStats();updateTileStatus(state.tileErrors?'частично':'готово');probeAllMapSources(false)},80);
   })();
   </script>
   <script

@@ -341,7 +341,7 @@
         <section class="helpPanel">
           <h3>Карта и подложки</h3>
           <p><b>Подложка карты</b> — это основная карта под сеткой и разметкой. Есть городские карты, рельеф, спутник, засветка, пользовательский URL и MBTiles.</p>
-          <p><b>Индикатор доступности</b> рядом с названием проверяется по одному контрольному тайлу: 🟢 — источник отвечает, 🔴 — сейчас не отвечает или требует отдельного ключа, ⚪ — проверка ещё идёт. Красные источники автоматически опускаются вниз своей категории; CARTO всегда находятся в конце раздела «Городские». Цвет отражает доступность из вашей сети в момент проверки и не гарантирует наличие подробных тайлов во всех районах. Результат обновляется при открытии списка, но не чаще одного раза в 30 минут.</p>
+          <p><b>Индикатор доступности</b> рядом с названием проверяется по одному контрольному тайлу: 🟢 — источник отвечает, 🔴 — сейчас не отвечает или требует отдельного ключа, ⚪ — проверка ещё идёт. При каждом открытии инструмент выбирает первую доступную основную карту, а не прошлый источник. Красные источники автоматически опускаются вниз своей категории; CARTO всегда находятся в конце раздела «Городские». Цвет отражает доступность из вашей сети в момент проверки и не гарантирует наличие подробных тайлов во всех районах. Результат обновляется при открытии списка, но не чаще одного раза в 30 минут.</p>
           <p><b>Вторая подложка</b> накладывается поверх первой с регулируемой прозрачностью. Это удобно, когда нужно совместить спутник с дорогами, рельефом или НСПД.</p>
           <p><b>НСПД</b> может зависеть от региона, масштаба, доступности сервиса и VPN. Если слой пустой, попробуйте рекомендуемый масштаб из подсказки или другую подложку.</p>
           <p><b>MBTiles</b> читается прямо из выбранного файла. После перезапуска браузер попросит выбрать файл снова — это ограничение безопасности локальных файлов.</p>
@@ -490,7 +490,7 @@
     };
 
     // Центральное состояние приложения: карта, сетки, разметка, экспорт, погода и временные операции.
-    const state={center:{lat:55.026503,lon:82.921463},zoom:13,sourceKey:'osm',tileErrors:0,tileLoaded:0,tileLoading:0,mapSourceStatus:{},mapSourceProbeAt:0,mapSourceProbePromise:null,mapSourceSortTimer:null,selectedBounds:null,selectionAngle:0,gridAnchor:null,gridVisible:false,currentCells:[],vertexPoints:[],activeGridTopEdge:null,lastGpx:'',lastCentersGpx:'',lastBuiltGrid:null,frozenGrid:false,savedGrids:[],gridId:1,selectedSavedGridId:null,activeGridEditId:null,activeGridName:'',activeGridPlace:'',gridNameRequestKey:'',gridNameTimer:null,gridPlaceCache:new Map(),rebuildTimer:null,drawMode:false,isPanning:false,autoDeclinationDeg:0,declinationSource:'NOAA/WMM не запрошен',declinationTimer:null,weatherTimer:null,weatherPopupTimer:null,lastWeatherKey:'',annotationMode:'none',annotations:[],draftAnnotation:null,measurePreviewPoint:null,drawId:1,selectedAnnotationId:null,lastDrawClick:null,drawSize:'m',exportJobs:{},coordMarker:null,projectSaveTimer:null,autosaveDbErrorLogged:false,autosaveLocalErrorLogged:false,touchGesture:null,mobileTipTimer:null,drawSizePopupTimer:null,mobileDeleteSelector:null,gridLimitPending:null,mbtiles:null,mbtileUrlCache:new Map(),secondLayerEnabled:false,secondSourceKey:'none',secondOpacity:.45};
+    const state={center:{lat:55.026503,lon:82.921463},zoom:13,sourceKey:'osm',tileErrors:0,tileLoaded:0,tileLoading:0,mapSourceStatus:{},mapSourceProbeAt:0,mapSourceProbePromise:null,mapSourceSortTimer:null,defaultBaseSourceApplied:false,baseSourceUserChosen:false,selectedBounds:null,selectionAngle:0,gridAnchor:null,gridVisible:false,currentCells:[],vertexPoints:[],activeGridTopEdge:null,lastGpx:'',lastCentersGpx:'',lastBuiltGrid:null,frozenGrid:false,savedGrids:[],gridId:1,selectedSavedGridId:null,activeGridEditId:null,activeGridName:'',activeGridPlace:'',gridNameRequestKey:'',gridNameTimer:null,gridPlaceCache:new Map(),rebuildTimer:null,drawMode:false,isPanning:false,autoDeclinationDeg:0,declinationSource:'NOAA/WMM не запрошен',declinationTimer:null,weatherTimer:null,weatherPopupTimer:null,lastWeatherKey:'',annotationMode:'none',annotations:[],draftAnnotation:null,measurePreviewPoint:null,drawId:1,selectedAnnotationId:null,lastDrawClick:null,drawSize:'m',exportJobs:{},coordMarker:null,projectSaveTimer:null,autosaveDbErrorLogged:false,autosaveLocalErrorLogged:false,touchGesture:null,mobileTipTimer:null,drawSizePopupTimer:null,mobileDeleteSelector:null,gridLimitPending:null,mbtiles:null,mbtileUrlCache:new Map(),secondLayerEnabled:false,secondSourceKey:'none',secondOpacity:.45};
 
     
     /** Возвращает размер всей Web-Mercator карты в пикселях для заданного zoom. */
@@ -637,6 +637,24 @@
       state.mapSourceSortTimer=setTimeout(reorderBaseLayerOptions,60);
     }
 
+    /** При запуске выбирает первый подтверждённо доступный источник, не перебивая ручной выбор. */
+    function maybeApplyDefaultBaseSource(){
+      if(state.defaultBaseSourceApplied||state.baseSourceUserChosen)return false;
+      const options=[...$('baseSelect').options].filter(opt=>opt.value&&!opt.disabled&&opt.value!=='none');
+      for(const opt of options){
+        const status=state.mapSourceStatus[opt.value]?.status;
+        if(!status||status==='checking')return false;
+        if(status==='up'){
+          state.defaultBaseSourceApplied=true;
+          state.sourceKey=opt.value;
+          $('baseSelect').value=opt.value;
+          resetTileStats();renderMap();updateTopbar();
+          return true;
+        }
+      }
+      return false;
+    }
+
     const MAP_SOURCE_ICONS={checking:'⚪',up:'🟢',down:'🔴'};
     /** Обновляет цветной индикатор одного источника в обоих списках подложек. */
     function setMapSourceStatus(key,status,reason=''){
@@ -651,6 +669,7 @@
         opt.title=details.join('. ');
       });
       scheduleBaseLayerReorder();
+      maybeApplyDefaultBaseSource();
     }
 
     /** Возвращает фактическую конфигурацию источника для фоновой проверки. */
@@ -2055,7 +2074,7 @@
     function scheduleProjectAutosave(){clearTimeout(state.projectSaveTimer);state.projectSaveTimer=setTimeout(()=>{const data=projectPayload();saveProjectAutosaveIndexed(data).then(()=>{state.autosaveDbErrorLogged=false}).catch(e=>{if(!state.autosaveDbErrorLogged){state.autosaveDbErrorLogged=true;log('Автосохранение большого проекта недоступно: '+e.message)}});try{localStorage.setItem(PROJECT_STORAGE_KEY,JSON.stringify(data));state.autosaveLocalErrorLogged=false}catch(e){if(!state.autosaveLocalErrorLogged){state.autosaveLocalErrorLogged=true;log('Резервное автосохранение localStorage недоступно: '+e.message)}}},500)}
     
     /** Служебная функция applyProjectPayload; см. вызовы рядом по коду для контекста. */
-    function applyProjectPayload(data,manual=false){if(!data||typeof data!=='object')throw new Error('Некорректный файл данных');const isAreaImport=String(data.savedAs||'')==='selected-area'||/-area\b/.test(String(data.version||''));if(data.center&&Number.isFinite(Number(data.center.lat))&&Number.isFinite(Number(data.center.lon)))state.center={lat:Number(data.center.lat),lon:Number(data.center.lon)};if(Number.isFinite(Number(data.zoom)))state.zoom=Math.max(MIN_ZOOM,Math.min(22,Math.round(Number(data.zoom))));if(data.sourceKey&&sources[data.sourceKey]){state.sourceKey=data.sourceKey;$('baseSelect').value=data.sourceKey}if(data.secondLayer){
+    function applyProjectPayload(data,manual=false){if(!data||typeof data!=='object')throw new Error('Некорректный файл данных');const isAreaImport=String(data.savedAs||'')==='selected-area'||/-area\b/.test(String(data.version||''));if(data.center&&Number.isFinite(Number(data.center.lat))&&Number.isFinite(Number(data.center.lon)))state.center={lat:Number(data.center.lat),lon:Number(data.center.lon)};if(Number.isFinite(Number(data.zoom)))state.zoom=Math.max(MIN_ZOOM,Math.min(22,Math.round(Number(data.zoom))));if(manual&&data.sourceKey&&sources[data.sourceKey]){state.baseSourceUserChosen=true;state.defaultBaseSourceApplied=true;state.sourceKey=data.sourceKey;$('baseSelect').value=data.sourceKey}if(data.secondLayer){
       const requested=String(data.secondLayer.sourceKey||'none');
       const key=(data.secondLayer.enabled&&sources[requested])?requested:'none';
       if($('secondBaseSelect'))$('secondBaseSelect').value=key;
@@ -2413,7 +2432,7 @@
           for(const url of state.mbtileUrlCache.values())URL.revokeObjectURL(url);
           state.mbtileUrlCache.clear();
           // Patch tile reader for byte records.
-          state.sourceKey='mbtiles';$('baseSelect').value='mbtiles';$('mbtilesName').value=file.name;
+          state.baseSourceUserChosen=true;state.defaultBaseSourceApplied=true;state.sourceKey='mbtiles';$('baseSelect').value='mbtiles';$('mbtilesName').value=file.name;
           setMapSourceStatus('mbtiles','up','локальный файл подключён');
           const info=`${file.name} · ${count.toLocaleString('ru-RU')} тайлов · z${state.mbtiles.minzoom}–${state.mbtiles.maxzoom} · ${scheme.toUpperCase()} · ${format.toUpperCase()}`;
           $('mbtilesInfo').textContent=info;
@@ -2520,7 +2539,7 @@
       if($('gridLimitCancel'))$('gridLimitCancel').addEventListener('click',()=>{state.gridLimitPending=null;closeGridLimitDialog();toast('Большая сетка не построена','ok')});
       if($('gridLimitOverlay'))$('gridLimitOverlay').addEventListener('click',e=>{if(e.target!==e.currentTarget)return;state.gridLimitPending=null;closeGridLimitDialog()});
       $('goBtn').addEventListener('click',goToCoords);$('coordInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();goToCoords()}});$('coordInput').addEventListener('input',()=>{if(!$('coordInput').value.trim())clearCoordMarker()});$('zoomPlus').addEventListener('click',()=>zoomBy(1));$('zoomMinus').addEventListener('click',()=>zoomBy(-1));$('placeBtn').addEventListener('click',searchPlace);$('placeInput').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});let st=null;$('placeInput').addEventListener('input',()=>{if(!$('placeInput').value.trim())clearCoordMarker();clearTimeout(st);st=setTimeout(searchPlace,450)});
-      $('baseSelect').addEventListener('change',e=>{state.sourceKey=e.target.value;const moved=applySourceDefaultView(state.sourceKey);probeMapSource(state.sourceKey,true);resetTileStats();renderMap();updateTopbar();savePrefs();toast(moved?'Подложка переключена, открыт рабочий масштаб слоя':'Подложка переключена','ok')});$('sourceGear').addEventListener('click',()=>{$('sourceSettings').open=!$('sourceSettings').open});$('applyCustom').addEventListener('click',()=>{$('baseSelect').value='custom';state.sourceKey='custom';savePrefs();probeMapSource('custom',true);resetTileStats();renderMap()});if($('loadMbtilesBtn'))$('loadMbtilesBtn').addEventListener('click',()=>$('mbtilesFile').click());if($('mbtilesFile'))$('mbtilesFile').addEventListener('change',e=>openMbtilesFile(e.target.files&&e.target.files[0]));['customUrl','customAttr','customMaxZoom','tileCors'].forEach(id=>$(id).addEventListener('change',()=>{savePrefs();if(id==='customUrl'||id==='customMaxZoom')probeMapSource('custom',true);resetTileStats();renderMap()}));
+      $('baseSelect').addEventListener('change',e=>{state.baseSourceUserChosen=true;state.defaultBaseSourceApplied=true;state.sourceKey=e.target.value;const moved=applySourceDefaultView(state.sourceKey);probeMapSource(state.sourceKey,true);resetTileStats();renderMap();updateTopbar();savePrefs();toast(moved?'Подложка переключена, открыт рабочий масштаб слоя':'Подложка переключена','ok')});$('sourceGear').addEventListener('click',()=>{$('sourceSettings').open=!$('sourceSettings').open});$('applyCustom').addEventListener('click',()=>{state.baseSourceUserChosen=true;state.defaultBaseSourceApplied=true;$('baseSelect').value='custom';state.sourceKey='custom';savePrefs();probeMapSource('custom',true);resetTileStats();renderMap()});if($('loadMbtilesBtn'))$('loadMbtilesBtn').addEventListener('click',()=>$('mbtilesFile').click());if($('mbtilesFile'))$('mbtilesFile').addEventListener('change',e=>openMbtilesFile(e.target.files&&e.target.files[0]));['customUrl','customAttr','customMaxZoom','tileCors'].forEach(id=>$(id).addEventListener('change',()=>{savePrefs();if(id==='customUrl'||id==='customMaxZoom')probeMapSource('custom',true);resetTileStats();renderMap()}));
       [$('baseSelect'),$('secondBaseSelect')].filter(Boolean).forEach(select=>{select.addEventListener('pointerdown',()=>probeAllMapSources(false));select.addEventListener('focus',()=>probeAllMapSources(false))});
       if($('secondBaseSelect'))$('secondBaseSelect').addEventListener('change',()=>{syncSecondLayerState();if(state.secondLayerEnabled)probeMapSource(state.secondSourceKey,true);const moved=state.secondLayerEnabled&&applySourceDefaultView(state.secondSourceKey);renderMap();updateTopbar();savePrefs();if(moved)toast('Открыта область доступности второй подложки','ok')});
       if($('secondOpacity')){
@@ -2546,7 +2565,7 @@
       ['gridColor','gridWeight','gridLabelSize'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',()=>{if(state.gridVisible)renderGridSvg()})});
       mapEl.addEventListener('touchstart',handleMapTouchStart,{passive:false});mapEl.addEventListener('touchmove',handleMapTouchMove,{passive:false});mapEl.addEventListener('touchend',handleMapTouchEnd,{passive:false});mapEl.addEventListener('touchcancel',handleMapTouchEnd,{passive:false});mapEl.addEventListener('pointerdown',startPan);mapEl.addEventListener('wheel',e=>{e.preventDefault();const p=mouseToPoint(e);zoomBy(e.deltaY<0?1:-1,p)},{passive:false});mapEl.addEventListener('mousemove',e=>{const p=mouseToPoint(e),g=pointToGeo(p);$('cursorPos').textContent=`курсор: ${fmt(g.lat,5)}, ${fmt(g.lon,5)}`;updateMeasurePreview(p)});mapEl.addEventListener('mouseleave',clearMeasurePreview);window.addEventListener('resize',()=>{renderMap();if(state.gridVisible&&$('followViewport').checked){state.selectedBounds=getGridViewportBounds();state.selectionAngle=0;state.gridAnchor=boundsCenter(state.selectedBounds);buildGrid({silent:true})}});
     }
-    installAdditionalBaseLayers();initializeMapSourceOrdering();reorderBaseLayerOptions();initializeCompactBaseLayer();initializeAreaStatus();mergeAreaIntoGridParameters();initializeCollapsibleSections();initializeFixedGridSizing();setupMobilePanelResizer();loadPrefs();annotateBaseLayerOptions();bindEvents();setupSmartTooltips();restoreProjectAutosave();if($('autoCell'))$('autoCell').checked=false;syncCellPresetButtons();resetTileStats();renderMap();updateTopbar();updateAutoDeclination();updateAngleUi(false);scheduleWeather();setTimeout(()=>{renderMap();updateStats();updateTileStatus(state.tileErrors?'частично':'готово');probeAllMapSources(false)},80);
+    installAdditionalBaseLayers();$('baseSelect').value='osm';state.sourceKey='osm';initializeMapSourceOrdering();reorderBaseLayerOptions();initializeCompactBaseLayer();initializeAreaStatus();mergeAreaIntoGridParameters();initializeCollapsibleSections();initializeFixedGridSizing();setupMobilePanelResizer();loadPrefs();annotateBaseLayerOptions();bindEvents();setupSmartTooltips();restoreProjectAutosave();if($('autoCell'))$('autoCell').checked=false;syncCellPresetButtons();resetTileStats();renderMap();updateTopbar();updateAutoDeclination();updateAngleUi(false);scheduleWeather();setTimeout(()=>{renderMap();updateStats();updateTileStatus(state.tileErrors?'частично':'готово');probeAllMapSources(false)},80);
   })();
   </script>
   <script

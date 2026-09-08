@@ -206,6 +206,9 @@
       background:#0c1324;
     }
     .mapHint{font-size:12px;color:var(--muted);margin-top:6px}
+    .mapControls{display:flex;align-items:center;gap:12px;margin-top:8px;font-size:13px;color:var(--ink)}
+    .mapControls label{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+    .mapControls input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
     .leaflet-container{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0c1324}
     .leaflet-control-attribution{font-size:10px}
     @media (max-width:720px){
@@ -1611,7 +1614,7 @@
     .placeInputsStack .coordFieldTitle label{margin:0!important}
     .placeActionRow{
       display:grid!important;
-      grid-template-columns:92px auto!important;
+      grid-template-columns:92px auto auto!important;
       gap:8px!important;
       align-items:center!important;
       justify-content:start!important;
@@ -1620,6 +1623,7 @@
     }
     .placeActionRow #searchPlaceBtn{height:42px!important;padding:8px 12px!important}
     .placeActionRow #placeStatus{justify-self:start!important}
+    .placeActionRow .mapControls{margin-top:0!important;white-space:nowrap}
     .compactStatus.neutral .compactStatusBtn,
     .status.neutral .compactStatusBtn{
       background:#fff!important;
@@ -1648,7 +1652,7 @@
       .placeInputsStack label{font-size:11.5px!important;margin:5px 0 3px!important}
       .placeInputsStack .coordFieldTitle{margin:5px 0 3px!important}
       .placeActionRow{
-        grid-template-columns:70px auto!important;
+        grid-template-columns:70px auto auto!important;
         gap:5px!important;
         margin-top:7px!important;
       }
@@ -1770,6 +1774,9 @@
       <div class="placeActionRow">
         <button id="searchPlaceBtn" type="button">Найти</button>
         <div id="placeStatus" class="status warn">Место пока не выбрано.</div>
+        <div class="mapControls advancedOnly">
+          <label for="satelliteMapToggle"><input id="satelliteMapToggle" type="checkbox" /> Спутник</label>
+        </div>
       </div>
       <div id="internetStatus" class="status warn hidden">Проверяю доступ к интернету…</div>
       <div id="suggestions" class="suggestions"></div>
@@ -2628,6 +2635,101 @@
     updateActionState();
   }
 
+  // Независимые источники подложки. При серии ошибок карта сама переходит
+  // к следующему сервису; ключи API для этих вариантов не нужны.
+  const MAP_TILE_PROVIDERS = [
+    {
+      name:'OSM Humanitarian',
+      url:'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+      options:{subdomains:'abc', minZoom:1, maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, tiles by <a href="https://www.hotosm.org/">HOT</a>'}
+    },
+    {
+      name:'OSM France',
+      url:'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+      options:{subdomains:'abc', minZoom:1, maxZoom:20, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, tiles by OSM France'}
+    },
+    {
+      name:'OpenStreetMap',
+      url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      options:{maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+    },
+    {
+      name:'CARTO Voyager',
+      url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+      options:{subdomains:'abcd', maxZoom:20, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
+    },
+    {
+      name:'Esri World Street Map',
+      url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+      options:{maxZoom:19, attribution:'Tiles &copy; Esri'}
+    }
+  ];
+
+  const SATELLITE_TILE_PROVIDER = {
+    name:'Esri World Imagery',
+    url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    options:{maxZoom:19, attribution:'Tiles &copy; Esri'}
+  };
+
+  function connectMapTileProvider(index){
+    if (!state.map || index >= MAP_TILE_PROVIDERS.length) {
+      showToast('Не удалось загрузить подложку карты ни с одного сервиса. Выбор точки по координатам продолжает работать.', 'warn', 7000);
+      return;
+    }
+
+    const provider = MAP_TILE_PROVIDERS[index];
+    if (state.mapTileLayer) state.map.removeLayer(state.mapTileLayer);
+
+    const layer = L.tileLayer(provider.url, {...provider.options, crossOrigin:true});
+    state.mapTileLayer = layer;
+    state.mapTileProviderIndex = index;
+
+    let loaded = 0;
+    let failed = 0;
+    let switching = false;
+    layer.on('tileload', () => { loaded += 1; });
+    layer.on('tileerror', () => {
+      failed += 1;
+      // Несколько ошибок подряд означают недоступный сервис. Единичный сбой
+      // не должен переключать уже работающую карту.
+      if (!switching && failed >= 3 && failed > loaded * 2) {
+        switching = true;
+        const next = MAP_TILE_PROVIDERS[index + 1];
+        if (next) showToast(`${provider.name} недоступен — подключаю ${next.name}.`, 'warn', 4200);
+        setTimeout(() => {
+          if (state.mapTileLayer === layer) connectMapTileProvider(index + 1);
+        }, 0);
+      }
+    });
+    layer.addTo(state.map);
+  }
+
+  function setSatelliteMap(enabled){
+    if (!state.map) return;
+    if (!enabled) {
+      connectMapTileProvider(Number.isInteger(state.mapTileProviderIndex) ? state.mapTileProviderIndex : 0);
+      return;
+    }
+
+    if (state.mapTileLayer) state.map.removeLayer(state.mapTileLayer);
+    const provider = SATELLITE_TILE_PROVIDER;
+    const layer = L.tileLayer(provider.url, {...provider.options, crossOrigin:true});
+    state.mapTileLayer = layer;
+    let loaded = 0;
+    let failed = 0;
+    layer.on('tileload', () => { loaded += 1; });
+    layer.on('tileerror', () => {
+      failed += 1;
+      if (state.mapTileLayer === layer && failed >= 3 && failed > loaded * 2) {
+        const toggle = $('satelliteMapToggle');
+        if (toggle) toggle.checked = false;
+        showToast('Спутниковая подложка недоступна — возвращаю обычную карту.', 'warn', 5000);
+        connectMapTileProvider(Number.isInteger(state.mapTileProviderIndex) ? state.mapTileProviderIndex : 0);
+      }
+    });
+    layer.addTo(state.map);
+  }
+
   // Инициализирует Leaflet-карту для выбора точки в продвинутом режиме.
   function initMap(){
     const box = $('map');
@@ -2639,11 +2741,8 @@
     if (state.map) return;
     const startLat = state.location?.latitude ?? 56.0;
     const startLon = state.location?.longitude ?? 37.6;
-    state.map = L.map('map', {scrollWheelZoom:true}).setView([startLat, startLon], state.location ? 11 : 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(state.map);
+    state.map = L.map('map', {scrollWheelZoom:true, attributionControl:false}).setView([startLat, startLon], state.location ? 11 : 6);
+    connectMapTileProvider(0);
     state.map.on('click', (e) => {
       setLocationFromMap(e.latlng.lat, e.latlng.lng, 'Точка с карты');
     });
@@ -6349,6 +6448,7 @@ function buildTimeFocusTicks(){
   $('themeToggleBtn')?.addEventListener('click', () => applyTheme(isOriginalTheme() ? 'grid' : 'original'));
   $('headerHelpBtn')?.addEventListener('click', openHelpInfo);
   $('technicalTagsBtn')?.addEventListener('click', toggleTechnicalTags);
+  $('satelliteMapToggle')?.addEventListener('change', (e) => setSatelliteMap(Boolean(e.target.checked)));
 
   // Ввод места: поиск города запускается с небольшой задержкой, чтобы не слать запрос на каждый символ.
   $('placeInput').addEventListener('input', () => {
@@ -6452,11 +6552,6 @@ function buildTimeFocusTicks(){
     ctx.font = '15px system-ui'; ctx.fillText('выберите место и период', canvas.width/2, canvas.height/2 + 18);
   }
 })();
-</script>
-<script
-    data-goatcounter="https://podkit.goatcounter.com/count"
-    async
-    src="https://gc.zgo.at/count.js">
 </script>
 </body>
 </html>

@@ -80,7 +80,7 @@
 
     .toolCard{display:grid;grid-template-rows:1fr auto;gap:8px;min-width:0}.toolCard>.toolButton{width:100%;height:100%}
     .downloadButton{min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:8px 13px;border:1px solid #9fc9df;border-radius:11px;background:rgba(255,255,255,.88);color:var(--blue2);box-shadow:0 5px 14px rgba(7,25,35,.09);font-size:12px;font-weight:900;line-height:1;text-decoration:none;transition:.16s transform,.16s background,.16s border-color,.16s box-shadow}.downloadButton:hover{transform:translateY(-2px);background:#fff;border-color:#4b92e6;box-shadow:0 8px 18px rgba(25,103,210,.16)}.downloadButton .downloadIcon{font-size:16px;line-height:1}.downloadButton.unavailable{cursor:not-allowed;background:rgba(235,242,246,.82);border-color:#c5d3dc;color:#728995;box-shadow:none}.downloadButton.unavailable:hover{transform:none;background:rgba(235,242,246,.82);border-color:#c5d3dc;box-shadow:none}
-    .localUseNote{margin:9px auto 0;text-align:center;color:#476170;font-size:12px;font-weight:800;line-height:1.35}
+    .heroLocalUse{margin:7px 0 0;color:#476170;font-size:12px;font-weight:800;line-height:1.3}
 
     .contentGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.list{display:grid;gap:9px}.item{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:#fafdff;border:1px solid var(--line);border-radius:14px;padding:11px}.date,.type{font-size:11px;font-weight:900;color:var(--blue2);background:#eef8ff;border:1px solid #c4e2f2;border-radius:999px;padding:5px 8px;white-space:nowrap}.item b{display:block;font-size:14px;margin-bottom:3px}.item p{font-size:13px;line-height:1.38;color:var(--muted)}.articleLink{display:block;text-decoration:none}.articleLink:hover .item{background:#eef8ff;border-color:#78aef0}.articleLink.soon{cursor:default}.articleLink.soon:hover .item{background:#fafdff;border-color:var(--line)}
 
@@ -312,7 +312,7 @@
       .toolCard{gap:4px}
       .downloadButton{min-height:23px;padding:3px 8px;border-radius:8px;font-size:9px}
       .downloadButton .downloadIcon{font-size:12px}
-      .localUseNote{margin-top:6px;font-size:9px;line-height:1.2}
+      .heroLocalUse{margin-top:4px;font-size:9px;line-height:1.2}
     }
 
     @media(max-width:920px) and (max-height:560px){
@@ -321,20 +321,6 @@
       .toolButton strong{font-size:18px}
       .toolButton > span:not(.mark){font-size:10.5px}
       .toolButton .mark{min-width:40px;height:40px;font-size:15px}
-      .launchPanel::before{
-        content:'Расчёты помогают, но не заменяют полевую проверку';
-        display:block;
-        margin:0 1px 5px;
-        padding:3px 6px;
-        border:1px solid #f2c078;
-        border-radius:8px;
-        background:#fff8e9;
-        color:#6b4200;
-        font-size:8px;
-        font-weight:800;
-        line-height:1.08;
-        text-align:center;
-      }
       .toolButton{
         min-height:82px;
         height:calc((100dvh - 92px)/3);
@@ -366,12 +352,7 @@
       <div class="card">
         <h1>Инструменты для поисково-спасательной работы</h1>
         <p class="lead">Набор инструментов для анализа ветра, оценки переноса запаха, подготовки поисковых карт, построения сеток, нанесения разметки и передачи рабочих материалов между поисковиками, координаторами, группами и отрядами.</p>
-        <div class="heroBadges">
-          <span class="badge ok">работает в браузере</span>
-          <span class="badge">без установки ПО</span>
-          <span class="badge">GPX · MS · PNG · PDF</span>
-          <span class="badge warn">расчёты помогают, но не заменяют полевую проверку</span>
-        </div>
+        <p class="heroLocalUse">Каждый инструмент можно скачать и использовать локально на компьютере или телефоне.</p>
       </div>
     </section>
 
@@ -382,9 +363,9 @@
             <strong class="articleCardTitle">Как движется запах</strong>
             <span class="articleTags"><span class="articleTag">статья</span><span class="articleTag">кинология</span></span>
           </span>
-          <span class="articleCardDescription">Распространение запаха и практическая работа кинолога-поисковика.</span>
+          <span class="articleCardDescription">Практическое руководство для кинолога-поисковика</span>
         </span>
-        <span class="articleCardOpen">Читать руководство ↗</span>
+        <span class="articleCardOpen">Методический комплекс ↗</span>
       </a>
     </section>
 
@@ -421,7 +402,6 @@
           </span>
         </div>
       </div>
-      <p class="localUseNote">Каждый инструмент можно скачать и использовать локально на компьютере или телефоне.</p>
     </section>
 
     <section class="infoGrid" aria-label="Краткие возможности проекта">
